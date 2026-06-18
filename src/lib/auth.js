@@ -5,7 +5,6 @@ import dns from "node:dns/promises";
 import { jwt } from "better-auth/plugins";
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
-
 const client = new MongoClient(process.env.MONGODB_URI);
 const db = client.db("artHub_DB");
 
@@ -14,26 +13,38 @@ export const auth = betterAuth({
     client
   }),
 
-   emailAndPassword: { 
+  emailAndPassword: { 
     enabled: true, 
   },
+
   socialProviders: {
-        google: { 
-            clientId: process.env.GOOGLE_CLIENT_ID, 
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET, 
-        }},
-        session:{
-          cookieCache:{
-            enabled:true,
-            strategy:"jwt",
-            //max 7days
-            maxAge: 7 * 24 * 60 * 60
-          }
+    google: { 
+      clientId: process.env.GOOGLE_CLIENT_ID, 
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET, 
+    }
+  },
 
-        },
-        plugins:[
-          jwt()
-        ]
+  // 🔥 Better Auth-এ রোল (Role) ফিল্ডটি ডেটাবেজে এলাও করার জন্য এই কাস্টম ইউজার স্কিমা যোগ করুন
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "user", // ফ্রন্টএন্ড থেকে কিছু না পাঠালে ডিফল্ট রোল হবে 'user'
+      },
+    },
+  },
 
+  session: {
+    cookieCache: {
+      enabled: true,
+      strategy: "jwt",
+      //max 7days
+      maxAge: 7 * 24 * 60 * 60
+    }
+  },
 
+  plugins: [
+    jwt()
+  ]
 });

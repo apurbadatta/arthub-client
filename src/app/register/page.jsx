@@ -14,7 +14,7 @@ import {
 
 import { useRouter } from "next/navigation";
 import { FaGoogle, FaUserPlus, FaUser, FaPalette } from "react-icons/fa"; 
-import { HiEye, HiEyeOff, HiMail } from "react-icons/hi"; 
+import { HiEye, HiEyeOff, } from "react-icons/hi"; 
 import { toast } from "react-hot-toast"; 
 import Link from 'next/link'; 
 import { useState } from "react";
