@@ -20,64 +20,66 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     
-    const registerUser = async (name, email, role) => {
-        setLoading(true);
-        try {
-            const userData = { name, email, role: role || 'user' };
-            await axiosPublic.post('/api/users', userData);
-            
-            const currentUser = { name, email, role: role || 'user', subscriptionTier: 'free' };
-            setUser(currentUser);
-            localStorage.setItem('arthub_user', JSON.stringify(currentUser));
+    // ১.  (Password এবং Image URL সহ)
+const registerUser = async (name, email, password, imageUrl, role) => {
+    setLoading(true);
+    try {
+        const userData = { name, email, password, imageUrl, role: role || 'user' };
+        await axiosPublic.post('/api/users', userData);
+        
+        const currentUser = { name, email, imageUrl, role: role || 'user', subscriptionTier: 'free' };
+        setUser(currentUser);
+        localStorage.setItem('arthub_user', JSON.stringify(currentUser));
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Registration Successful!',
+            text: `Welcome to ArtHub as an ${role || 'user'}!`,
+            showConfirmButton: false,
+            timer: 2000
+        });
+        return true;
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Registration Failed',
+            text: error.response?.data?.message || 'Something went wrong!',
+        });
+        return false;
+    } finally {
+        setLoading(false);
+    }
+};
+
+// ২.  (Password ম্যাচ করার জন্য)
+const loginUser = async (email, password) => {
+    setLoading(true);
+    try {
+        // ব্যাকএন্ডে ইমেইলের পাশাপাশি পাসওয়ার্ডও পাঠাচ্ছি ভেরিফাই করার জন্য
+        const res = await axiosPublic.post('/api/users/login', { email, password });
+        if (res.data) {
+            setUser(res.data);
+            localStorage.setItem('arthub_user', JSON.stringify(res.data));
             
             Swal.fire({
                 icon: 'success',
-                title: 'Registration Successful!',
-                text: `Welcome to ArtHub as an ${role || 'user'}!`,
+                title: 'Welcome Back!',
                 showConfirmButton: false,
-                timer: 2000
+                timer: 1500
             });
             return true;
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Registration Failed',
-                text: error.response?.data?.message || 'Something went wrong!',
-            });
-            return false;
-        } finally {
-            setLoading(false);
         }
-    };
-
-    
-    const loginUser = async (email) => {
-        setLoading(true);
-        try {
-            const res = await axiosPublic.get(`/api/users/profile/${email}`);
-            if (res.data) {
-                setUser(res.data);
-                localStorage.setItem('arthub_user', JSON.stringify(res.data));
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Welcome Back!',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-                return true;
-            }
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Login Failed',
-                text: error.response?.data?.message || 'User not found! Please register.',
-            });
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: error.response?.data?.message || 'Invalid Email or Password!',
+        });
+        return false;
+    } finally {
+        setLoading(false);
+    }
+};
 
     // ৩. লগআউট ফাংশন
     const logoutUser = () => {
