@@ -1,11 +1,16 @@
 "use client";
+
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Spinner } from "@heroui/react";
+import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+
+
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
+
   const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
@@ -16,12 +21,24 @@ export default function DashboardLayout({ children }) {
 
   if (isPending || !session) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-3">
+      <div className="h-screen w-full flex flex-col items-center justify-center gap-3 bg-white">
         <Spinner size="lg" color="secondary" />
-        <p className="text-sm font-semibold text-slate-500 animate-pulse">Loading Dashboard...</p>
+        <p className="text-sm font-semibold text-slate-500 animate-pulse">
+          Loading Dashboard...
+        </p>
       </div>
     );
   }
 
-  return <div className="w-full min-h-screen bg-slate-50">{children}</div>;
+  return (
+    <div className="flex min-h-screen bg-slate-100">
+      {/* Sidebar */}
+      <DashboardSidebar session={session} />
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 overflow-y-auto">
+        {children}
+      </main>
+    </div>
+  );
 }
