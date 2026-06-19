@@ -1,15 +1,19 @@
-import React from 'react';
+"use client";
+import { authClient } from "@/lib/auth-client";
+import ManageArtworks from "@/components/artist/ManageArtworks";
+import { Spinner } from "@heroui/react";
 
-export default function ManageArtworksPage() {
-  return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold">Manage Artworks</h1>
+export default function ArtistManageArtworksPage() {
+  const { data: session, isPending } = authClient.useSession();
 
-      <p className="text-gray-500">
-        Here you can add, edit, delete and manage your artworks.
-      </p>
-    </div>
-  );
+  if (isPending) {
+    return (
+      <div className="flex justify-center items-center h-48 w-full">
+        <Spinner color="secondary" size="md" />
+      </div>
+    );
+  }
+
+  return <ManageArtworks user={session?.user} />;
 }
-
 
