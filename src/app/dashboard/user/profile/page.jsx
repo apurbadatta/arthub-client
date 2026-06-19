@@ -1,11 +1,11 @@
-import React from 'react';
+export default function UserProfilePage() {
+  return (
+    <div className="space-y-4">
+      <h1 className="text-3xl font-bold">Profile Management</h1>
 
-const ProfilePage = () => {
-    return (
-        <div>
-            
-        </div>
-    );
-};
-
-export default ProfilePage;
+      <p className="text-gray-500">
+        Update your profile information, password and account settings.
+      </p>
+    </div>
+  );
+}

@@ -1,11 +1,11 @@
-import React from 'react';
+export default function SubscriptionPage() {
+  return (
+    <div className="space-y-4">
+      <h1 className="text-3xl font-bold">Subscription Tier</h1>
 
-const subscriptionPage = () => {
-    return (
-        <div>
-            subscription
-        </div>
-    );
-};
-
-export default subscriptionPage;
+      <p className="text-gray-500">
+        View and manage your subscription plan.
+      </p>
+    </div>
+  );
+}
