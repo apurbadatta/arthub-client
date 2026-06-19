@@ -24,13 +24,16 @@ export const auth = betterAuth({
     }
   },
 
-  // 🔥 Better Auth-এ রোল (Role) ফিল্ডটি ডেটাবেজে এলাও করার জন্য এই কাস্টম ইউজার স্কিমা যোগ করুন
+  // 🔥 Better Auth-এ রোল (Role) 
   user: {
     additionalFields: {
       role: {
         type: "string",
         required: false,
-        defaultValue: "user", // ফ্রন্টএন্ড থেকে কিছু না পাঠালে ডিফল্ট রোল হবে 'user'
+        defaultValue: "user", // 'user'
+      },
+      plan: {
+       defaultValue:"free"
       },
     },
   },
