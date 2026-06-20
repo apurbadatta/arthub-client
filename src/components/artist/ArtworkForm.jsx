@@ -123,7 +123,7 @@ export default function ArtworkForm({ user, editData, onSuccess, onCancel }) {
     <div className="w-full text-slate-200 animate-in fade-in duration-200">
       {/* ফর্ম হেডার */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold text-white tracking-wide">
+        <h1 className="text-xl font-bold text-black tracking-wide">
           {isEditMode ? "Edit Artwork" : "Upload New Artwork"}
         </h1>
         <button 

@@ -118,18 +118,27 @@ export default function ManageArtworks({ user }) {
     );
   }
 
-  const handleUpgradePlanClick = async()=>{
-    const res =await fetch("/api/checkout_sessions",{
-      method: "POST",
-      headers:{
-        "Content-Type": "application/json"
-
-      }});
-    const data= await res.json();
-    if (data?.url){
-      window.location.href= data.url;
+ const handleUpgradePlanClick = async () => {
+    try {
+      const res = await fetch("/api/checkout_sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+     
+        body: JSON.stringify({ email: user?.email }), 
+      });
+      
+      const data = await res.json();
+      
+      if (data.url) {
+        window.location.href = data.url; 
+      } else {
+        toast.error(data.error || "Failed to create checkout session");
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast.error("Something went wrong!");
     }
-   }
+  };
 
 
 

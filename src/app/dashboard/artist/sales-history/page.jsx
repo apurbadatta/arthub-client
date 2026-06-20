@@ -1,70 +1,118 @@
-
 "use client";
 import { useState, useEffect } from "react";
-import { FaCalendarAlt, FaChartLine, FaCrown, FaDollarSign, FaImage, FaSpinner } from "react-icons/fa";
+import { FaCalendarAlt, FaChartLine, FaCrown, FaDollarSign, FaImage, FaSpinner, FaCheckCircle } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { authClient } from "@/lib/auth-client";
 
-export default function SalesHistoryPage({ user }) {
+export default function SalesHistoryPage() { // 💡 প্যারামিটার থেকে user বাদ দিয়ে ইন্টারনাল হ্যান্ডলিং করা হয়েছে
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
   const [loading, setLoading] = useState(false);
+  const [invoices, setInvoices] = useState([]); 
   const [stats, setStats] = useState({
     totalUploaded: 0,
     totalSalesCount: 0,
     totalRevenue: 0,
   });
+  const [currentEmail, setCurrentEmail] = useState("");
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+  // ১. পেজ লোড হওয়ার সময় session বা LocalStorage বা আপনার মেকানিজম থেকে ইমেইল বের করা
   useEffect(() => {
-    // লগইন করা আর্টিস্টের ইমেইল ট্র্যাক করা হচ্ছে
-    let artistEmail = user?.email;
-    if (!artistEmail) {
+    if (session?.user?.email) {
+      setCurrentEmail(session.user.email);
+    } else {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         try {
-          artistEmail = JSON.parse(storedUser)?.email;
+          const parsed = JSON.parse(storedUser);
+          if (parsed?.email) {
+            setCurrentEmail(parsed.email);
+          }
         } catch (e) {
-          console.error(e);
+          console.error("LocalStorage parsing error:", e);
         }
       }
     }
+  }, [session]);
 
-    if (!artistEmail) return;
+  // ২. ইমেইল পাওয়ার পর ব্যাকএন্ড থেকে ডেটা ফেচ করা
+  useEffect(() => {
+    if (!currentEmail) return;
 
-    const fetchArtistStats = async () => {
+    const fetchArtistData = async () => {
       setLoading(true);
       try {
-        // ১. আর্টিস্টের টোটাল আপলোড করা আর্টওয়ার্ক সংখ্যা জানার জন্য আপনার এক্সিস্টিং এপিআই কল
-        const res = await fetch(`${baseUrl}/api/my-artworks?email=${artistEmail}`);
-        if (!res.ok) throw new Error("Failed to fetch data");
-        const result = await res.json();
-
-        if (result.success && Array.isArray(result.data)) {
-          const totalArtworks = result.data.length;
-
-          
-          setStats({
-            totalUploaded: totalArtworks,
-            totalSalesCount: 0,
-            totalRevenue: 0.0,
-          });
+        // ১. আর্টিস্টের টোটাল আপলোড করা আর্টওয়ার্ক সংখ্যা ফেচ করা
+        const artRes = await fetch(`${baseUrl}/api/my-artworks?email=${currentEmail}`);
+        let totalArtworks = 0;
+        if (artRes.ok) {
+          const artResult = await artRes.json();
+          if (artResult.success && Array.isArray(artResult.data)) {
+            totalArtworks = artResult.data.length;
+          }
         }
+
+        // ২. মঙ্গোডিবি থেকে আর্টিস্টের পেমেন্ট/ইনভয়েস হিস্টোরি ফেচ করা
+        const paymentRes = await fetch(`${baseUrl}/api/payments/history?email=${currentEmail}`);
+        let paymentList = [];
+        let totalRevenue = 0;
+
+        if (paymentRes.ok) {
+          const paymentResult = await paymentRes.json();
+          if (paymentResult.success && Array.isArray(paymentResult.data)) {
+            paymentList = paymentResult.data;
+            totalRevenue = paymentList.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+          }
+        }
+
+        // স্টেট আপডেট করা হচ্ছে
+        setInvoices(paymentList);
+        setStats({
+          totalUploaded: totalArtworks,
+          totalSalesCount: paymentList.length, 
+          totalRevenue: totalRevenue,
+        });
+
       } catch (error) {
-        console.error("Error fetching stats:", error);
+        console.error("Error fetching stats and invoices:", error);
+        toast.error("Failed to load analytics data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchArtistStats();
-  }, [user, baseUrl]);
+    fetchArtistData();
+  }, [currentEmail, baseUrl]);
 
-  const handleUpgrade = () => {
-    toast.info("Stripe Payment gateway redirecting... (Coming Soon)");
+  // স্ট্রাইপ পেমেন্ট গেটওয়ে রিডাইরেকশন হ্যান্ডলার
+  const handleUpgrade = async () => {
+    if (!currentEmail) {
+      toast.error("User email not found. Please log in again.");
+      return;
+    }
+    try {
+      toast.info("Redirecting to Stripe Checkout...");
+      const res = await fetch("/api/checkout_sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: currentEmail }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || "Failed to initiate payment");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong!");
+    }
   };
 
   return (
-    <div className="w-full text-slate-200 max-w-5xl space-y-6">
+    <div className="w-full text-slate-200 max-w-5xl space-y-6 p-4">
       <ToastContainer theme="dark" position="top-right" />
 
       {/* পেজ হেডার */}
@@ -77,17 +125,15 @@ export default function SalesHistoryPage({ user }) {
 
       <div className="w-full border-t border-slate-800 my-4"></div>
 
-      {loading ? (
+      {loading || sessionLoading ? (
         <div className="flex flex-col justify-center items-center py-20 text-indigo-500 space-y-3">
           <FaSpinner className="animate-spin text-3xl" />
           <p className="text-xs text-slate-500">Calculating repository data...</p>
         </div>
       ) : (
         <>
-          {/* গ্রিড স্ট্যাটস কার্ডস (image_953cd0 এর মতো লেআউট) */}
+          {/* গ্রিড স্ট্যাটস কার্ডস */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            
-            {/* কার্ড ১: টোটাল হোস্টেড/আপলোডেড আর্টওয়ার্ক */}
             <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-sm transition-all hover:border-slate-700">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Uploaded Art</p>
@@ -98,10 +144,9 @@ export default function SalesHistoryPage({ user }) {
               </div>
             </div>
 
-            {/* কার্ড ২: টোটাল সেলস কাউন্ট */}
             <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-sm transition-all hover:border-slate-700">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Artwork Sales</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Transactions</p>
                 <p className="text-3xl font-extrabold text-white tracking-tight">{stats.totalSalesCount}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
@@ -109,7 +154,6 @@ export default function SalesHistoryPage({ user }) {
               </div>
             </div>
 
-            {/* কার্ড ৩: অর্জিত মোট রেভিনিউ */}
             <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-sm transition-all hover:border-slate-700">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accumulated Revenue</p>
@@ -121,28 +165,18 @@ export default function SalesHistoryPage({ user }) {
                 <FaDollarSign size={20} />
               </div>
             </div>
-
           </div>
 
-          {/* প্রিমিয়াম ব্যানার সেকশন (Premium Card Section) */}
+          {/* প্রিমিয়াম ব্যানার সেকশন */}
           <div className="w-full relative overflow-hidden bg-gradient-to-r from-[#1e1b4b]/80 via-[#111827] to-[#111827] border border-amber-500/30 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mt-8 shadow-xl">
-            {/* ব্যাকগ্রাউন্ড গ্লো ইফেক্ট */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mt-1 shrink-0 shadow-inner">
-                <FaCrown size={22} className="drop-shadow-[0_2px_8px_rgba(245,158,11,0.4)]" />
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  Unlock Unlimited Art Creation
-                </h3>
-                <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
-                  Standard artist accounts are limited to host up to <span className="text-amber-400 font-semibold">3 custom artwork</span> pieces simultaneously. Upgrade to our Premium Package for <span className="text-white font-semibold">$49.00</span> to publish and commercialize unlimited creations.
-                </p>
-              </div>
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                Unlock Unlimited Art Creation
+              </h3>
+              <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
+                Standard artist accounts are limited to host up to <span className="text-amber-400 font-semibold">3 custom artwork</span> pieces simultaneously. Upgrade to our Premium Package for <span className="text-white font-semibold">$49.00</span> to publish and commercialize unlimited creations.
+              </p>
             </div>
-
             <button 
               onClick={handleUpgrade}
               className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl transition-all shadow-lg hover:shadow-amber-500/20 cursor-pointer text-center shrink-0"
@@ -151,15 +185,55 @@ export default function SalesHistoryPage({ user }) {
             </button>
           </div>
 
-          {/* রিসেন্ট হিস্টোরি টেবিল বা এম্পটি স্টেট প্লেসহোল্ডার */}
+          {/* ریسেন্ট ইনভয়েস টেবিল */}
           <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 mt-6">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <FaCalendarAlt className="text-slate-500" /> Recent Invoices & Statements
             </h3>
-            <div className="border border-dashed border-slate-800 rounded-xl py-12 flex flex-col items-center justify-center text-center">
-              <p className="text-sm text-slate-500">No recent transactions found</p>
-              <p className="text-[11px] text-slate-600 mt-1">When clients buy your arts with Stripe, transaction lists appear here.</p>
-            </div>
+
+            {invoices.length === 0 ? (
+              <div className="border border-dashed border-slate-800 rounded-xl py-12 flex flex-col items-center justify-center text-center">
+                <p className="text-sm text-slate-500">No recent transactions found</p>
+                <p className="text-[11px] text-slate-600 mt-1">When you upgrade your tier using Stripe, transaction lists appear here.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-slate-400 font-bold">
+                      <th className="py-3 px-4">Transaction ID / Email</th>
+                      <th className="py-3 px-4">Date</th>
+                      <th className="py-3 px-4">Package</th>
+                      <th className="py-3 px-4">Amount</th>
+                      <th className="py-3 px-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {invoices.map((invoice, index) => (
+                      <tr key={index} className="hover:bg-slate-900/40 transition">
+                        <td className="py-3.5 px-4 font-mono text-slate-300 max-w-[180px] truncate">
+                          {invoice.transactionId || invoice.email}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400">
+                          {invoice.date ? new Date(invoice.date).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-200 font-medium">
+                          {invoice.packageName || "Premium Tier Upgrade"}
+                        </td>
+                        <td className="py-3.5 px-4 text-emerald-400 font-bold">
+                          ${(invoice.amount || 0).toFixed(2)}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
+                            <FaCheckCircle size={10} /> Paid
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </>
       )}
