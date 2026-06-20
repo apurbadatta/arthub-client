@@ -94,7 +94,7 @@ export default function ArtworkForm({ user, editData, onSuccess, onCancel }) {
       const url = isEditMode ? `${baseUrl}/api/artworks/${editData._id}` : `${baseUrl}/api/artworks`;
       const method = isEditMode ? "PUT" : "POST";
 
-      const res = await fetch(url, {
+     const res = await fetch(url, {
         method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(artworkData),
@@ -102,12 +102,15 @@ export default function ArtworkForm({ user, editData, onSuccess, onCancel }) {
 
       const result = await res.json();
 
-      if (result.acknowledged || result.success || result.modifiedCount > 0) {
+      if (res.ok && (result.acknowledged || result.success || result.modifiedCount > 0)) {
         toast.success(isEditMode ? "Artwork updated successfully! 🎉" : "Artwork saved successfully! 🎉");
-        onSuccess(); // 
+        onSuccess(); 
       } else {
-        toast.error(result.error || "Database operation failed!");
+       
+        toast.error(result.error || result.message || "Database operation failed!");
       }
+
+
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong on the server!");

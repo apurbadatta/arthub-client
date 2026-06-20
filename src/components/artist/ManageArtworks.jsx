@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaPlus, FaSpinner, FaTrash, FaEdit, FaExclamationTriangle } from "react-icons/fa";
+import { FaPlus, FaSpinner, FaTrash, FaEdit, FaExclamationTriangle, FaCrown } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ArtworkForm from "./ArtworkForm"; 
@@ -9,6 +9,7 @@ export default function ManageArtworks({ user }) {
   const [view, setView] = useState("list"); // 'list', 'add', or 'edit'
   const [artworks, setArtworks] = useState([]);
   const [dbLoading, setDbLoading] = useState(false);
+  const [userTier, setUserTier] = useState("free"); // ইউজারের বর্তমান টিয়ার ট্র্যাক করার জন্য
   
   // delete modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -20,11 +21,12 @@ export default function ManageArtworks({ user }) {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // artis her own data fasing
-  const fetchArtworks = async () => {
+  // আর্টিস্টের নিজের ডেটা এবং প্রোফাইল টিয়ার ফেচ করা
+  const fetchArtworksAndTier = async () => {
     if (!user?.email) return;
     setDbLoading(true);
     try {
+      // ১. আর্টওয়ার্কস লোড
       const res = await fetch(`${baseUrl}/api/my-artworks?email=${user.email}`); 
       const result = await res.json();
       if (result.success) {
@@ -32,8 +34,18 @@ export default function ManageArtworks({ user }) {
       } else if (Array.isArray(result)) {
         setArtworks(result);
       }
+
+      // ২. ইউজারের আইডি খোঁজা (টিয়ার ডিটেক্ট করার জন্য আপনার এক্সিস্টিং প্রোফাইল এপিআই ব্যবহার)
+      const idToQuery = user?._id || user?.uid || user?.id;
+      if (idToQuery) {
+        const profileRes = await fetch(`${baseUrl}/api/profile?id=${idToQuery}`);
+        const profileData = await profileRes.json();
+        if (profileData.success && profileData.data) {
+          setUserTier(profileData.data.tier || "free");
+        }
+      }
     } catch (error) {
-      console.error("Error fetching artworks:", error);
+      console.error("Error fetching gallery metrics:", error);
       toast.error("Failed to load gallery data");
     } finally {
       setDbLoading(false);
@@ -41,15 +53,22 @@ export default function ManageArtworks({ user }) {
   };
 
   useEffect(() => {
-    fetchArtworks();
+    fetchArtworksAndTier();
   }, [user?.email]);
 
+  // প্লাস বাটনে ক্লিক করলে মেম্বারশিপ এবং কাউন্ট ভ্যালিডেশন গার্ড
+  const handleAddArtworkClick = () => {
+    if (userTier === "free" && artworks.length >= 3) {
+      toast.error("❌ Limit Reached! standard accounts are limited to 3 items. Please upgrade to Premium package.");
+      return;
+    }
+    setView("add");
+  };
   
   const openDeleteModal = (id) => {
     setTargetDeleteId(id);
     setIsDeleteModalOpen(true);
   };
-
   
   const handleDeleteConfirm = async () => {
     if (!targetDeleteId) return;
@@ -76,20 +95,18 @@ export default function ManageArtworks({ user }) {
     }
   };
 
-
   const handleEditClick = (artwork) => {
     setSelectedArtwork(artwork);
     setView("edit");
   };
 
-
   const handleFormSuccess = () => {
     setView("list");
     setSelectedArtwork(null);
-    fetchArtworks();
+    fetchArtworksAndTier();
   };
-
   
+
   if (view === "add" || view === "edit") {
     return (
       <ArtworkForm 
@@ -101,9 +118,24 @@ export default function ManageArtworks({ user }) {
     );
   }
 
+  const handleUpgradePlanClick = async()=>{
+    const res =await fetch("/api/checkout_sessions",{
+      method: "POST",
+      headers:{
+        "Content-Type": "application/json"
+
+      }});
+    const data= await res.json();
+    if (data?.url){
+      window.location.href= data.url;
+    }
+   }
+
+
+
   return (
     <div className="w-full text-slate-200">
-      <ToastContainer theme="dark" position="top-right" autoClose={3000} />
+      <ToastContainer theme="dark" position="top-right" autoClose={4000} />
       
       {/* হেডার */}
       <div className="flex justify-between items-center mb-1">
@@ -112,15 +144,27 @@ export default function ManageArtworks({ user }) {
           <p className="text-xs text-slate-400 mt-1">Create and publish art pieces for sale on the platform.</p>
         </div>
         <button 
-          onClick={() => setView("add")}
+          onClick={handleAddArtworkClick}
           className="bg-[#5c3ef2] hover:bg-[#4c30d3] text-white text-xs font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer shadow-lg transition-all"
         >
           <FaPlus className="text-[10px]" /> Add Artwork
         </button>
       </div>
 
-      <div className="w-full border-t border-slate-800 my-6"></div>
+      {/* ফ্রি টিয়ার নোটিশ ব্যানার (ইউজার যদি অলরেডি ৩টি আপলোড করে ফেলে) */}
+      {userTier === "free" && artworks.length >= 3 && (
+        <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-xl mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
+          <p className="leading-relaxed">
+            ⚠️ You have utilized <strong>{artworks.length}/3 slots</strong> of your Free limits. Delete an item or upgrade to register unlimited masterpieces.
+          </p>
+         <button onClick={handleUpgradePlanClick} className="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg hover:bg-amber-600 transition flex items-center gap-1 shrink-0 cursor-pointer uppercase tracking-wider text-[10px]">
+            <FaCrown size={11}/> Upgrade Plan
+          </button>
 
+        </div>
+      )}
+
+      <div className="w-full border-t border-slate-800 my-6"></div>
 
       {dbLoading ? (
         <div className="flex justify-center items-center py-24 text-indigo-500">
@@ -133,7 +177,7 @@ export default function ManageArtworks({ user }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {artworks.map((art) => (
-            <div key={art._id} className="bg-[#1a2333] border border-slate-800 rounded-2xl overflow-hidden shadow-md group">
+            <div key={art._id} className="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden shadow-md group">
               <div className="relative aspect-[4/3] w-full bg-slate-900 overflow-hidden">
                 <img src={art.image} alt={art.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
               </div>
@@ -157,7 +201,7 @@ export default function ManageArtworks({ user }) {
         </div>
       )}
 
- 
+      {/* Delete Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-[#111827] border border-slate-800 rounded-2xl w-full max-w-md p-6 relative shadow-2xl text-center space-y-4">
