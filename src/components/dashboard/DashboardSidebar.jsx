@@ -16,7 +16,7 @@ export default function DashboardSidebar({ session }) {
         href: "/dashboard/artist/manage-artworks",
       },
       {
-        title: "Sales History",
+        title: "Sales History and Premium Package",
         href: "/dashboard/artist/sales-history",
       },
       {

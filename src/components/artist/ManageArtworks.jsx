@@ -108,7 +108,7 @@ export default function ManageArtworks({ user }) {
       {/* হেডার */}
       <div className="flex justify-between items-center mb-1">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">My Artwork Gallery</h1>
+          <h1 className="text-2xl font-bold text-black tracking-tight">My Artwork Gallery</h1>
           <p className="text-xs text-slate-400 mt-1">Create and publish art pieces for sale on the platform.</p>
         </div>
         <button 
