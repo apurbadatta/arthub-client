@@ -5,8 +5,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { authClient } from "@/lib/auth-client";
 
-export default function SalesHistoryPage() { // 💡 প্যারামিটার থেকে user বাদ দিয়ে ইন্টারনাল হ্যান্ডলিং করা হয়েছে
-  const { data: session, isPending: sessionLoading } = authClient.useSession();
+export default function SalesHistoryPage() { 
+  const { data: session, isPending: sessionLoading, refetch } = authClient.useSession();
   const [loading, setLoading] = useState(false);
   const [invoices, setInvoices] = useState([]); 
   const [stats, setStats] = useState({
@@ -16,12 +16,19 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
   });
   const [currentEmail, setCurrentEmail] = useState("");
 
+ 
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
+
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // ১. পেজ লোড হওয়ার সময় session বা LocalStorage বা আপনার মেকানিজম থেকে ইমেইল বের করা
+ 
   useEffect(() => {
     if (session?.user?.email) {
       setCurrentEmail(session.user.email);
+
+      if (session.user.isPremium || session.user.tier === "premium") {
+        setIsPremiumUser(true);
+      }
     } else {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
@@ -29,6 +36,10 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
           const parsed = JSON.parse(storedUser);
           if (parsed?.email) {
             setCurrentEmail(parsed.email);
+        
+            if (parsed.isPremium || parsed.tier === "premium") {
+              setIsPremiumUser(true);
+            }
           }
         } catch (e) {
           console.error("LocalStorage parsing error:", e);
@@ -37,14 +48,14 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
     }
   }, [session]);
 
-  // ২. ইমেইল পাওয়ার পর ব্যাকএন্ড থেকে ডেটা ফেচ করা
+ 
   useEffect(() => {
     if (!currentEmail) return;
 
     const fetchArtistData = async () => {
       setLoading(true);
       try {
-        // ১. আর্টিস্টের টোটাল আপলোড করা আর্টওয়ার্ক সংখ্যা ফেচ করা
+       
         const artRes = await fetch(`${baseUrl}/api/my-artworks?email=${currentEmail}`);
         let totalArtworks = 0;
         if (artRes.ok) {
@@ -54,7 +65,7 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
           }
         }
 
-        // ২. মঙ্গোডিবি থেকে আর্টিস্টের পেমেন্ট/ইনভয়েস হিস্টোরি ফেচ করা
+    
         const paymentRes = await fetch(`${baseUrl}/api/payments/history?email=${currentEmail}`);
         let paymentList = [];
         let totalRevenue = 0;
@@ -67,7 +78,53 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
           }
         }
 
-        // স্টেট আপডেট করা হচ্ছে
+     
+        let userId = session?.user?.id || session?.user?._id;
+        if (!userId) {
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            try {
+              const parsed = JSON.parse(storedUser);
+              userId = parsed?._id || parsed?.uid || parsed?.id;
+            } catch (e) {
+              console.error("Error parsing stored user ID:", e);
+            }
+          }
+        }
+
+        if (userId) {
+          const profileRes = await fetch(`${baseUrl}/api/profile?id=${userId}`);
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            if (profileData.success && profileData.data) {
+              const isPremium = profileData.data.isPremium || profileData.data.tier === "premium" || profileData.data.plan === "premium";
+              if (isPremium) {
+                setIsPremiumUser(true);
+            
+                try {
+                  const storedUser = localStorage.getItem("user");
+                  if (storedUser) {
+                    const parsed = JSON.parse(storedUser);
+                    if (!parsed.isPremium || parsed.tier !== "premium") {
+                      parsed.isPremium = true;
+                      parsed.tier = "premium";
+                      localStorage.setItem("user", JSON.stringify(parsed));
+                    }
+                  }
+                  if (refetch) {
+                    await refetch();
+                  }
+                } catch (syncErr) {
+                  console.error("Session sync error:", syncErr);
+                }
+              } else {
+                setIsPremiumUser(false);
+              }
+            }
+          }
+        }
+
+      
         setInvoices(paymentList);
         setStats({
           totalUploaded: totalArtworks,
@@ -84,9 +141,9 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
     };
 
     fetchArtistData();
-  }, [currentEmail, baseUrl]);
+  }, [currentEmail, baseUrl, session, refetch]);
 
-  // স্ট্রাইপ পেমেন্ট গেটওয়ে রিডাইরেকশন হ্যান্ডলার
+
   const handleUpgrade = async () => {
     if (!currentEmail) {
       toast.error("User email not found. Please log in again.");
@@ -115,7 +172,7 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
     <div className="w-full text-slate-200 max-w-5xl space-y-6 p-4">
       <ToastContainer theme="dark" position="top-right" />
 
-      {/* পেজ হেডার */}
+   
       <div className="mb-2">
         <h1 className="text-2xl font-bold text-black tracking-tight">Sales Analytics & History</h1>
         <p className="text-xs text-slate-400 mt-1">
@@ -132,7 +189,7 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
         </div>
       ) : (
         <>
-          {/* গ্রিড স্ট্যাটস কার্ডস */}
+     
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-sm transition-all hover:border-slate-700">
               <div className="space-y-1">
@@ -167,25 +224,39 @@ export default function SalesHistoryPage() { // 💡 প্যারামিট
             </div>
           </div>
 
-          {/* প্রিমিয়াম ব্যানার সেকশন */}
+      
           <div className="w-full relative overflow-hidden bg-gradient-to-r from-[#1e1b4b]/80 via-[#111827] to-[#111827] border border-amber-500/30 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mt-8 shadow-xl">
             <div className="space-y-1.5">
+          
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                Unlock Unlimited Art Creation
+                {isPremiumUser ? "Premium Tier Active" : "Unlock Unlimited Art Creation"}
               </h3>
               <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
-                Standard artist accounts are limited to host up to <span className="text-amber-400 font-semibold">3 custom artwork</span> pieces simultaneously. Upgrade to our Premium Package for <span className="text-white font-semibold">$49.00</span> to publish and commercialize unlimited creations.
+                {isPremiumUser ? (
+                  <span className="text-emerald-400 font-semibold">Thank you! You are a premium member. Enjoy unlimited artwork publishing features.</span>
+                ) : (
+                  <>
+                    Standard artist accounts are limited to host up to <span className="text-amber-400 font-semibold">3 custom artwork</span> pieces simultaneously. Upgrade to our Premium Package for <span className="text-white font-semibold">$49.00</span> to publish and commercialize unlimited creations.
+                  </>
+                )}
               </p>
             </div>
-            <button 
-              onClick={handleUpgrade}
-              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl transition-all shadow-lg hover:shadow-amber-500/20 cursor-pointer text-center shrink-0"
-            >
-              Upgrade to Premium
-            </button>
+            
+            {isPremiumUser ? (
+              <span className="w-full sm:w-auto bg-emerald-500/20 border border-emerald-500 text-emerald-400 font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl text-center shrink-0">
+                Premium Account
+              </span>
+            ) : (
+              <button 
+                onClick={handleUpgrade}
+                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl transition-all shadow-lg hover:shadow-amber-500/20 cursor-pointer text-center shrink-0"
+              >
+                Upgrade to Premium
+              </button>
+            )}
           </div>
 
-          {/* ریسেন্ট ইনভয়েস টেবিল */}
+          
           <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 mt-6">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <FaCalendarAlt className="text-slate-500" /> Recent Invoices & Statements

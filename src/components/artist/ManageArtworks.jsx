@@ -5,7 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ArtworkForm from "./ArtworkForm"; 
 
-export default function ManageArtworks({ user }) {
+export default function ManageArtworks({ user, refetch }) {
   const [view, setView] = useState("list"); // 'list', 'add', or 'edit'
   const [artworks, setArtworks] = useState([]);
   const [dbLoading, setDbLoading] = useState(false);
@@ -41,7 +41,28 @@ export default function ManageArtworks({ user }) {
         const profileRes = await fetch(`${baseUrl}/api/profile?id=${idToQuery}`);
         const profileData = await profileRes.json();
         if (profileData.success && profileData.data) {
-          setUserTier(profileData.data.tier || "free");
+          const tier = profileData.data.tier || "free";
+          setUserTier(tier);
+
+          // লোকাল স্টোরেজ এবং Better Auth সেশন সিঙ্ক করা (যদি প্রিমিয়াম হয়ে থাকে)
+          if (tier === "premium") {
+            try {
+              const storedUser = localStorage.getItem("user");
+              if (storedUser) {
+                const parsed = JSON.parse(storedUser);
+                if (!parsed.isPremium || parsed.tier !== "premium") {
+                  parsed.isPremium = true;
+                  parsed.tier = "premium";
+                  localStorage.setItem("user", JSON.stringify(parsed));
+                }
+              }
+              if (refetch) {
+                await refetch();
+              }
+            } catch (err) {
+              console.error("Sync error in ManageArtworks:", err);
+            }
+          }
         }
       }
     } catch (error) {

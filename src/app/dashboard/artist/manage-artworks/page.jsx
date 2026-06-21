@@ -4,7 +4,7 @@ import ManageArtworks from "@/components/artist/ManageArtworks";
 import { Spinner } from "@heroui/react";
 
 export default function ArtistManageArtworksPage() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending, refetch } = authClient.useSession();
 
   if (isPending) {
     return (
@@ -14,6 +14,6 @@ export default function ArtistManageArtworksPage() {
     );
   }
 
-  return <ManageArtworks user={session?.user} />;
+  return <ManageArtworks user={session?.user} refetch={refetch} />;
 }
 
