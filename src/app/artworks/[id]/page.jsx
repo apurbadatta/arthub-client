@@ -4,12 +4,35 @@ import { useParams, useRouter } from "next/navigation";
 import { FaCalendarAlt, FaCheckCircle, FaShoppingCart, FaArrowLeft, FaSpinner } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { authClient } from "@/lib/auth-client";
 
 export default function ArtworkDetailsPage() {
   const { id } = useParams(); 
   const router = useRouter();
   const [artwork, setArtwork] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { data: session } = authClient.useSession();
+  const [buying, setBuying] = useState(false);
+  const [isPurchased, setIsPurchased] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.email && id) {
+      const checkOwnership = async () => {
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const res = await fetch(`${baseUrl}/api/purchases?email=${session.user.email}`);
+          const data = await res.json();
+          if (data.success && data.data) {
+            const owned = data.data.some(p => p.artworkId === id);
+            setIsPurchased(owned);
+          }
+        } catch (error) {
+          console.error("Error checking ownership:", error);
+        }
+      };
+      checkOwnership();
+    }
+  }, [session, id]);
 
   useEffect(() => {
     const fetchArtworkDetails = async () => {
@@ -34,6 +57,49 @@ export default function ArtworkDetailsPage() {
 
     if (id) fetchArtworkDetails();
   }, [id]);
+
+  const handlePurchase = async () => {
+    if (!session?.user) {
+      toast.error("Please login first to purchase this artwork!");
+      router.push("/login");
+      return;
+    }
+
+    setBuying(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${baseUrl}/api/purchases`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userEmail: session.user.email,
+          artworkId: id
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success("Artwork purchased successfully! 🎉");
+        setIsPurchased(true);
+        setTimeout(() => {
+          router.push("/dashboard/user/bought-artworks");
+        }, 1500);
+      } else {
+        const errorMsg = data.error || data.message || "Purchase failed!";
+        toast.error(errorMsg);
+        if (errorMsg.includes("Limit Reached")) {
+          setTimeout(() => {
+            router.push("/dashboard/user/subscription");
+          }, 3000);
+        }
+      }
+    } catch (error) {
+      console.error("Purchase error:", error);
+      toast.error("An error occurred during purchase.");
+    } finally {
+      setBuying(false);
+    }
+  };
 
   // লোডিং কন্ডিশন
   if (loading) {
@@ -143,10 +209,27 @@ export default function ArtworkDetailsPage() {
             {/* স্ট্রাইপ পেমেন্ট বাটন */}
             <div className="pt-2 max-w-lg">
               <button 
-                onClick={() => toast.info("Stripe Payment Gateway is connecting...")}
-                className="w-full bg-[#5c3ef2] hover:bg-[#4c30d3] text-white font-bold text-xs uppercase tracking-wider py-4 rounded-xl shadow-xl shadow-purple-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                onClick={handlePurchase}
+                disabled={buying || isPurchased}
+                className={`w-full font-bold text-xs uppercase tracking-wider py-4 rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  isPurchased 
+                    ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 cursor-not-allowed shadow-emerald-500/5" 
+                    : "bg-[#5c3ef2] hover:bg-[#4c30d3] text-white shadow-purple-500/10"
+                }`}
               >
-                <FaShoppingCart size={14} /> Buy Now with Stripe
+                {buying ? (
+                  <>
+                    <FaSpinner className="animate-spin" size={14} /> Processing...
+                  </>
+                ) : isPurchased ? (
+                  <>
+                    <FaCheckCircle size={14} /> Owned / Acquired
+                  </>
+                ) : (
+                  <>
+                    <FaShoppingCart size={14} /> Buy Now with Stripe
+                  </>
+                )}
               </button>
             </div>
 

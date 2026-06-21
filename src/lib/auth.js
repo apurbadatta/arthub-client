@@ -36,6 +36,10 @@ export const auth = betterAuth({
       plan: {
        defaultValue:"free"
       },
+      tier: {
+        type: "string",
+        defaultValue: "free",
+      },
        isPremium: {
         defaultValue: false,
       },

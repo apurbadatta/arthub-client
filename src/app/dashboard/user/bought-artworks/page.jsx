@@ -1,28 +1,54 @@
 "use client";
-import { useState } from "react";
-import { FaEye, FaImage, FaExternalLinkAlt } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaEye, FaImage, FaExternalLinkAlt, FaSpinner } from "react-icons/fa";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 export default function BoughtArtworksPage() {
-  // আপনার টেস্টিং এর সুবিধার জন্য ডামি ডাটা সেট করা হলো
-  const [boughtItems] = useState([
-    {
-      _id: "art_001",
-      title: "Shattered Grace",
-      artistName: "Michael Angelo",
-      price: 600,
-      category: "Sculpture",
-      image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      _id: "art_002",
-      title: "Classic Artwork",
-      artistName: "Apurba",
-      price: 45,
-      category: "Painting",
-      image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=600&auto=format&fit=crop",
-    },
-  ]);
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
+  const [boughtItems, setBoughtItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      const fetchBoughtArtworks = async () => {
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const res = await fetch(`${baseUrl}/api/purchases?email=${session.user.email}`);
+          const data = await res.json();
+          if (data.success && data.data) {
+            const items = data.data.map(p => ({
+              _id: p.artworkId,
+              title: p.artworkTitle,
+              artistName: p.artistName,
+              price: p.price,
+              category: p.category || "Digital Art",
+              image: p.artworkImage,
+              purchaseDate: p.purchaseDate,
+              referenceId: p.referenceId
+            }));
+            setBoughtItems(items);
+          }
+        } catch (error) {
+          console.error("Error fetching bought artworks:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchBoughtArtworks();
+    } else if (!sessionLoading) {
+      setLoading(false);
+    }
+  }, [session, sessionLoading]);
+
+  if (sessionLoading || loading) {
+    return (
+      <div className="flex flex-col justify-center items-center py-20 text-indigo-500 space-y-3">
+        <FaSpinner className="animate-spin text-3xl" />
+        <p className="text-xs text-slate-500">Loading bought artworks...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full text-slate-200 max-w-5xl space-y-6">

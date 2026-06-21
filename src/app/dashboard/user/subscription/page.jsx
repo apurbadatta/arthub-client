@@ -1,11 +1,45 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaCheckCircle, FaCrown, FaGem, FaLayerGroup, FaSpinner } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { authClient } from "@/lib/auth-client";
 
 export default function SubscriptionPage() {
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
   const [loadingTier, setLoadingTier] = useState(null);
+  const [currentTier, setCurrentTier] = useState("free");
+  const [currentEmail, setCurrentEmail] = useState("");
+  const [purchasedCount, setPurchasedCount] = useState(0);
+
+ 
+  useEffect(() => {
+    if (session?.user) {
+      setCurrentEmail(session.user.email);
+      
+      const userTier = session.user.tier || session.user.plan || "free";
+      setCurrentTier(userTier.toLowerCase());
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (currentEmail) {
+      const fetchPurchasedCount = async () => {
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const res = await fetch(`${baseUrl}/api/purchases?email=${currentEmail}`);
+          const data = await res.json();
+          if (data.success && data.data) {
+            setPurchasedCount(data.data.length);
+          }
+        } catch (error) {
+          console.error("Error fetching purchases:", error);
+        }
+      };
+      fetchPurchasedCount();
+    }
+  }, [currentEmail]);
+
 
   const tiers = [
     {
@@ -15,8 +49,9 @@ export default function SubscriptionPage() {
       description: "Ideal for casual art lovers starting their collection journey.",
       features: ["Max 3 Paintings Purchase Allowed", "Standard Browsing Experience", "Community Comments Access"],
       icon: <FaLayerGroup className="text-slate-400" size={24} />,
-      btnText: "Current Plan",
-      current: true,
+      btnText: currentTier === "free" ? "Current Plan" : "Downgrade",
+      current: currentTier === "free",
+      priceId: null, 
     },
     {
       id: "pro",
@@ -25,8 +60,9 @@ export default function SubscriptionPage() {
       description: "Perfect for growing collectors who want more flexibility.",
       features: ["Max 9 Paintings Purchase Allowed", "Priority Support", "Community Comments Access", "Exclusive Artist Badges"],
       icon: <FaGem className="text-indigo-400" size={24} />,
-      btnText: "Upgrade to Pro",
-      current: false,
+      btnText: currentTier === "pro" ? "Current Plan" : "Upgrade to Pro",
+      current: currentTier === "pro",
+      priceId: "price_1TkjgmQcs3NExJMCSAmPb79f", //  Pro Price 
     },
     {
       id: "premium",
@@ -35,21 +71,51 @@ export default function SubscriptionPage() {
       description: "Ultimate access for true connoisseurs and heavy investors.",
       features: ["Unlimited Paintings Purchases", "24/7 VIP Concierge Support", "Advanced Collection Metrics", "Early Access to New Drops"],
       icon: <FaCrown className="text-amber-400" size={24} />,
-      btnText: "Go Premium",
-      current: false,
+      btnText: currentTier === "premium" ? "Current Plan" : "Go Premium",
+      current: currentTier === "premium",
+      priceId: "price_1TkjjMQcs3NExJMC5pa7VsJr", // Premium Price ID 
     },
   ];
 
-  const handleSubscribe = (tierId) => {
-    setLoadingTier(tierId);
-    setTimeout(() => {
-      toast.success(`Redirecting to Stripe checkout for ${tierId} plan... 🎉`);
+  
+  const handleSubscribe = async (tier) => {
+    if (!currentEmail) {
+      toast.error("User email not found. Please log in again.");
+      return;
+    }
+
+    setLoadingTier(tier.id);
+    try {
+      toast.info(`Initiating checkout for ${tier.name}...`);
+      
+      const res = await fetch("/api/checkout_sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: currentEmail, 
+          priceId: tier.priceId, // ডাইনামিক প্রাইস আইডি যাচ্ছে
+          role: "user",           // রোল ইউজার পাঠানো হচ্ছে
+          tier: tier.id          // টায়ার পাঠানো হচ্ছে
+        }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        toast.success("Redirecting to Stripe checkout... 🎉");
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || "Failed to initiate payment");
+        setLoadingTier(null);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong!");
       setLoadingTier(null);
-    }, 1500);
+    }
   };
 
   return (
-    <div className="w-full text-slate-200 max-w-5xl space-y-6">
+    <div className="w-full text-slate-200 max-w-5xl space-y-6 p-4">
       <ToastContainer theme="dark" position="top-right" />
       
       <div>
@@ -59,63 +125,88 @@ export default function SubscriptionPage() {
 
       <div className="w-full border-t border-slate-800 my-4"></div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {tiers.map((tier) => (
-          <div 
-            key={tier.id} 
-            className={`bg-[#111827] border rounded-2xl p-6 flex flex-col justify-between transition-all relative ${
-              tier.current ? "border-indigo-500/50 shadow-lg shadow-indigo-500/5" : "border-slate-800 hover:border-slate-700"
-            }`}
-          >
-            {tier.id === "premium" && (
-              <span className="absolute -top-3 right-4 bg-amber-500 text-slate-950 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                Most Popular
-              </span>
-            )}
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-white">{tier.name}</h3>
-                <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl">{tier.icon}</div>
-              </div>
-              
-              <p className="text-xs text-slate-400 leading-relaxed min-h-[40px]">{tier.description}</p>
-              
-              <div className="pt-2">
-                <span className="text-3xl font-extrabold text-white tracking-tight">{tier.price}</span>
-                {tier.id !== "free" && <span className="text-xs text-slate-500 font-medium"> / monthly</span>}
-              </div>
-
-              <div className="border-t border-slate-800/60 my-2"></div>
-
-              <ul className="space-y-3 pt-2">
-                {tier.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
-                    <FaCheckCircle className={tier.id === "premium" ? "text-amber-500 mt-0.5" : "text-indigo-500 mt-0.5"} size={13} />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
+      {sessionLoading ? (
+        <div className="flex flex-col justify-center items-center py-20 text-indigo-500 space-y-3">
+          <FaSpinner className="animate-spin text-3xl" />
+          <p className="text-xs text-slate-500">Loading subscription details...</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Active Quota Card */}
+          <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-white">Your Account Subscription</h2>
+              <p className="text-xs text-slate-400 mt-1">Currently subscribed to the <span className="text-indigo-400 font-bold uppercase">{currentTier}</span> membership plan.</p>
             </div>
-
-            <div className="pt-6">
-              <button
-                disabled={tier.current || loadingTier !== null}
-                onClick={() => handleSubscribe(tier.id)}
-                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  tier.current
-                    ? "bg-slate-900 border border-slate-800 text-slate-500 cursor-not-allowed"
-                    : tier.id === "premium"
-                    ? "bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-lg hover:shadow-amber-500/10"
-                    : "bg-[#5c3ef2] hover:bg-[#4c30d3] text-white"
-                }`}
-              >
-                {loadingTier === tier.id ? <FaSpinner className="animate-spin" /> : tier.btnText}
-              </button>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl px-5 py-3.5 text-center md:text-right">
+              <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Artwork Quota Status</span>
+              <span className="text-sm font-extrabold text-white">
+                {purchasedCount} / {currentTier === "free" ? "3" : currentTier === "pro" ? "9" : "Unlimited"} Used
+              </span>
             </div>
           </div>
-        ))}
-      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {tiers.map((tier) => (
+              <div 
+                key={tier.id} 
+                className={`bg-[#111827] border rounded-2xl p-6 flex flex-col justify-between transition-all relative ${
+                  tier.current ? "border-indigo-500/50 shadow-lg shadow-indigo-500/5" : "border-slate-800 hover:border-slate-700"
+                }`}
+              >
+                {tier.id === "premium" && (
+                  <span className="absolute -top-3 right-4 bg-amber-500 text-slate-950 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                    Most Popular
+                  </span>
+                )}
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-white">{tier.name}</h3>
+                    <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl">{tier.icon}</div>
+                  </div>
+                  
+                  <p className="text-xs text-slate-400 leading-relaxed min-h-[40px]">{tier.description}</p>
+                  
+                  <div className="pt-2">
+                    <span className="text-3xl font-extrabold text-white tracking-tight">{tier.price}</span>
+                    {tier.id !== "free" && <span className="text-xs text-slate-500 font-medium"> / monthly</span>}
+                  </div>
+
+                  <div className="border-t border-slate-800/60 my-2"></div>
+
+                  <ul className="space-y-3 pt-2">
+                    {tier.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
+                        <FaCheckCircle className={tier.id === "premium" ? "text-amber-500 mt-0.5" : "text-indigo-500 mt-0.5"} size={13} />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-6">
+                  <button
+                    disabled={tier.current || loadingTier !== null}
+                    onClick={() => handleSubscribe(tier)}
+                    className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                      tier.current
+                        ? "bg-slate-900 border border-slate-800 text-slate-500 cursor-not-allowed"
+                        : loadingTier !== null 
+                        ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                        : tier.id === "premium"
+                        ? "bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-lg hover:shadow-amber-500/10 cursor-pointer"
+                        : "bg-[#5c3ef2] hover:bg-[#4c30d3] text-white cursor-pointer"
+                    }`}
+                  >
+                    {loadingTier === tier.id ? <FaSpinner className="animate-spin" /> : tier.btnText}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

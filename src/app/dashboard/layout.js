@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }) {
   useEffect(() => {
     if (isPending) return;
 
-    // Login না থাকলে
+
     if (!session) {
       router.replace("/login");
       return;
@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }) {
       return;
     }
 
-    // নিজের route ছাড়া অন্য route এ গেলে block
+
     if (!pathname.startsWith(allowedRoute) && pathname !== "/dashboard") {
       router.replace(allowedRoute);
     }
@@ -57,10 +57,10 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-[#070b13] text-slate-200">
       {/* Sidebar for Desktop & Mobile */}
-      <DashboardSidebar 
-        session={session} 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <DashboardSidebar
+        session={session}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <div className="flex-1 flex flex-col min-h-screen min-w-0 bg-[#070b13]">
@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }) {
               Art<span className="text-[#8b5cf6]">Hub</span>
             </span>
           </div>
-          <button 
+          <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 text-slate-400 hover:text-white bg-slate-900/60 rounded-xl border border-slate-800/80 focus:outline-none transition cursor-pointer"
           >
@@ -79,7 +79,6 @@ export default function DashboardLayout({ children }) {
           </button>
         </header>
 
-        {/* Main Content Area */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto">
           {children}
         </main>

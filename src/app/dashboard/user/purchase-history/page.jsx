@@ -1,26 +1,51 @@
 "use client";
-import { useState } from "react";
-import { FaCalendarAlt, FaCheckCircle, FaFileInvoice, FaHashtag } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaCalendarAlt, FaCheckCircle, FaFileInvoice, FaHashtag, FaSpinner } from "react-icons/fa";
+import { authClient } from "@/lib/auth-client";
 
 export default function PurchaseHistoryPage() {
-  const [history] = useState([
-    {
-      id: "TXN-98431",
-      artworkName: "Shattered Grace",
-      artistName: "Michael Angelo",
-      price: 600,
-      purchaseDate: "2026-06-06",
-      status: "Successful",
-    },
-    {
-      id: "TXN-12054",
-      artworkName: "Classic Artwork",
-      artistName: "Apurba",
-      price: 45,
-      purchaseDate: "2026-05-18",
-      status: "Successful",
-    },
-  ]);
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      const fetchHistory = async () => {
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const res = await fetch(`${baseUrl}/api/purchases?email=${session.user.email}`);
+          const data = await res.json();
+          if (data.success && data.data) {
+            const mapped = data.data.map(p => ({
+              id: p.referenceId,
+              artworkName: p.artworkTitle,
+              artistName: p.artistName,
+              price: p.price,
+              purchaseDate: new Date(p.purchaseDate).toLocaleDateString(),
+              status: p.status || "Successful"
+            }));
+            setHistory(mapped);
+          }
+        } catch (error) {
+          console.error("Error fetching purchase history:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchHistory();
+    } else if (!sessionLoading) {
+      setLoading(false);
+    }
+  }, [session, sessionLoading]);
+
+  if (sessionLoading || loading) {
+    return (
+      <div className="flex flex-col justify-center items-center py-20 text-indigo-500 space-y-3">
+        <FaSpinner className="animate-spin text-3xl" />
+        <p className="text-xs text-slate-500">Loading purchase statements...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full text-slate-200 max-w-5xl space-y-6">
