@@ -174,7 +174,7 @@ export default function SalesHistoryPage() {
 
    
       <div className="mb-2">
-        <h1 className="text-2xl font-bold text-black tracking-tight">Sales Analytics & History</h1>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Sales Analytics & History</h1>
         <p className="text-xs text-slate-400 mt-1">
           Review your artwork creation statistics, upgrade limitations, and monitor your global digital sales revenue.
         </p>

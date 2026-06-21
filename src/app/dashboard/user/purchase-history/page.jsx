@@ -25,7 +25,7 @@ export default function PurchaseHistoryPage() {
   return (
     <div className="w-full text-slate-200 max-w-5xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-black tracking-tight">Purchase Statements & Billing</h1>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Purchase Statements & Billing</h1>
         <p className="text-xs text-slate-400 mt-1">Review ledger transactions, stripe checkout ids, and legal acquirement timestamps.</p>
       </div>
 

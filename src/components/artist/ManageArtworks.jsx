@@ -9,7 +9,7 @@ export default function ManageArtworks({ user, refetch }) {
   const [view, setView] = useState("list"); // 'list', 'add', or 'edit'
   const [artworks, setArtworks] = useState([]);
   const [dbLoading, setDbLoading] = useState(false);
-  const [userTier, setUserTier] = useState("free"); // ইউজারের বর্তমান টিয়ার ট্র্যাক করার জন্য
+  const [userTier, setUserTier] = useState("free"); // 
   
   // delete modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -21,12 +21,12 @@ export default function ManageArtworks({ user, refetch }) {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // আর্টিস্টের নিজের ডেটা এবং প্রোফাইল টিয়ার ফেচ করা
+
   const fetchArtworksAndTier = async () => {
     if (!user?.email) return;
     setDbLoading(true);
     try {
-      // ১. আর্টওয়ার্কস লোড
+
       const res = await fetch(`${baseUrl}/api/my-artworks?email=${user.email}`); 
       const result = await res.json();
       if (result.success) {
@@ -35,7 +35,6 @@ export default function ManageArtworks({ user, refetch }) {
         setArtworks(result);
       }
 
-      // ২. ইউজারের আইডি খোঁজা (টিয়ার ডিটেক্ট করার জন্য আপনার এক্সিস্টিং প্রোফাইল এপিআই ব্যবহার)
       const idToQuery = user?._id || user?.uid || user?.id;
       if (idToQuery) {
         const profileRes = await fetch(`${baseUrl}/api/profile?id=${idToQuery}`);
@@ -44,7 +43,6 @@ export default function ManageArtworks({ user, refetch }) {
           const tier = profileData.data.tier || "free";
           setUserTier(tier);
 
-          // লোকাল স্টোরেজ এবং Better Auth সেশন সিঙ্ক করা (যদি প্রিমিয়াম হয়ে থাকে)
           if (tier === "premium") {
             try {
               const storedUser = localStorage.getItem("user");
@@ -77,7 +75,6 @@ export default function ManageArtworks({ user, refetch }) {
     fetchArtworksAndTier();
   }, [user?.email]);
 
-  // প্লাস বাটনে ক্লিক করলে মেম্বারশিপ এবং কাউন্ট ভ্যালিডেশন গার্ড
   const handleAddArtworkClick = () => {
     if (userTier === "free" && artworks.length >= 3) {
       toast.error("❌ Limit Reached! standard accounts are limited to 3 items. Please upgrade to Premium package.");
@@ -170,7 +167,7 @@ export default function ManageArtworks({ user, refetch }) {
       {/* হেডার */}
       <div className="flex justify-between items-center mb-1">
         <div>
-          <h1 className="text-2xl font-bold text-black tracking-tight">My Artwork Gallery</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">My Artwork Gallery</h1>
           <p className="text-xs text-slate-400 mt-1">Create and publish art pieces for sale on the platform.</p>
         </div>
         <button 
@@ -181,7 +178,7 @@ export default function ManageArtworks({ user, refetch }) {
         </button>
       </div>
 
-      {/* ফ্রি টিয়ার নোটিশ ব্যানার (ইউজার যদি অলরেডি ৩টি আপলোড করে ফেলে) */}
+     
       {userTier === "free" && artworks.length >= 3 && (
         <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-xl mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
           <p className="leading-relaxed">

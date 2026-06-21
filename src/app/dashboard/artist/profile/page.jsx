@@ -217,7 +217,7 @@ export default function ArtistProfile({ user }) {
       <ToastContainer theme="dark" position="top-right" autoClose={3000} />
       
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-black tracking-tight">Profile Management</h1>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Profile Management</h1>
         <p className="text-xs text-slate-400 mt-1">Update your personal profile details, account settings, and control your global system role.</p>
       </div>
 

@@ -53,7 +53,7 @@ export default function SubscriptionPage() {
       <ToastContainer theme="dark" position="top-right" />
       
       <div>
-        <h1 className="text-2xl font-bold text-black tracking-tight">Subscription Plan Tier Overview</h1>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Subscription Plan Tier Overview</h1>
         <p className="text-xs text-slate-400 mt-1">Upgrade your tier capacity to purchase more high-quality masterworks simultaneously.</p>
       </div>
 
