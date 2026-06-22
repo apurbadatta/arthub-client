@@ -211,7 +211,6 @@ export default function AdminProfile({ user }) {
       
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white tracking-tight">Profile Management</h1>
-        <p className="text-xs text-slate-400 mt-1">Update your personal profile details, account settings, and control your global system role.</p>
       </div>
 
       <div className="w-full border-t border-slate-800 my-6"></div>

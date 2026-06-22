@@ -33,9 +33,6 @@ export default function Transactions() {
      
       <div>
         <h1 className="text-3xl font-bold text-white tracking-tight">Financial Transactions</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Monitor and track all system-wide payments, purchases, and platform subscription fees.
-        </p>
       </div>
 
       <div className="w-full border-t border-slate-800/60 my-2"></div>

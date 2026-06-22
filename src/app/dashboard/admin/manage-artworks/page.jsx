@@ -81,9 +81,6 @@ export default function ManageArtworks() {
 
       <div>
         <h1 className="text-3xl font-bold text-white tracking-tight">Manage Artworks</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Review submissions, approve to publish, edit info, or delete artworks from the platform.
-        </p>
       </div>
 
       <div className="w-full border-t border-slate-800/60 my-2"></div>
