@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function ArtworkRow({ art, onApprove, onDeleteClick, actionLoadingId }) {
   return (
     <tr className="hover:bg-slate-900/30 transition-all border-b border-slate-800/40">
-      {/* ইমেজ এবং টাইটেল */}
+
       <td className="py-4 px-6 font-medium text-slate-100 flex items-center gap-3">
         <img 
           src={art.image} 
@@ -13,19 +13,17 @@ export default function ArtworkRow({ art, onApprove, onDeleteClick, actionLoadin
         />
         <span className="font-semibold text-sm max-w-[180px] truncate">{art.title}</span>
       </td>
-      
-      {/* আর্টিস্ট নাম */}
+
       <td className="py-4 px-6 text-slate-400">
         {art.artistName || "Unknown Artist"}
         <div className="text-[10px] text-slate-500 font-mono">{art.artistEmail}</div>
       </td>
       
-      {/* প্রাইস */}
       <td className="py-4 px-6 font-bold text-emerald-400">
         ${art.price}
       </td>
 
-      {/* স্ট্যাটাস ব্যাজ */}
+   
       <td className="py-4 px-6">
         <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider ${
           art.status === "approved" 
@@ -36,7 +34,7 @@ export default function ArtworkRow({ art, onApprove, onDeleteClick, actionLoadin
         </span>
       </td>
       
-      {/* অ্যাকশন বাটন */}
+
       <td className="py-4 px-6 text-center">
         <div className="flex items-center justify-center gap-2">
           {actionLoadingId === art._id ? (
@@ -52,7 +50,7 @@ export default function ArtworkRow({ art, onApprove, onDeleteClick, actionLoadin
                 </button>
               )}
               
-              {/* ✅ এখন এডমিন ফোল্ডারের অভ্যন্তরীণ নিরাপদ রুট ব্যবহার করা হয়েছে */}
+           
               <Link
                 href={`/dashboard/admin/manage-artworks/edit/${art._id}`} 
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1 rounded transition text-[11px]"

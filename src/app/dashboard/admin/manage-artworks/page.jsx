@@ -10,7 +10,7 @@ export default function ManageArtworks() {
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   
-  // HeroUI Modal States
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedArt, setSelectedArt] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -50,13 +50,13 @@ export default function ManageArtworks() {
     }
   };
 
-  // ডিলিট মোডাল ট্রিগার
+ 
   const openDeleteModal = (art) => {
     setSelectedArt(art);
     setIsModalOpen(true);
   };
 
-  // মোডাল থেকে ডিলিট নিশ্চিতকরণ
+
   const handleConfirmDelete = async () => {
     if (!selectedArt) return;
     setIsDeleting(true);
@@ -126,7 +126,6 @@ export default function ManageArtworks() {
         </div>
       )}
 
-      {/* HeroUI ডিলিট মোডাল */}
       <DeleteModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

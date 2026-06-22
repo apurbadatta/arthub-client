@@ -25,16 +25,16 @@ export default function AdminEditArtwork() {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // ১. নির্দিষ্ট আর্টওয়ার্কের ডেটা ব্যাকএন্ড থেকে লোড করা
+
   useEffect(() => {
     const fetchArtworkDetails = async () => {
       try {
-        // এখানে আপনার সিঙ্গেল আর্টওয়ার্ক গেট করার API ব্যবহার করবেন
+
         const res = await fetch(`${baseUrl}/api/artworks/${id}`);
         if (!res.ok) throw new Error("Failed to fetch artwork");
         
         const data = await res.json();
-        // আপনার ব্যাকএন্ড রেসপন্স স্ট্রাকচার অনুযায়ী সেট করবেন (ধরে নিচ্ছি data বা data.data তে অবজেক্ট আছে)
+    
         const artwork = data.data || data;
         
         setFormData({
@@ -59,19 +59,19 @@ export default function AdminEditArtwork() {
     }
   }, [id, baseUrl]);
 
-  // ইনপুট চেঞ্জ হ্যান্ডলার
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ২. আপডেট সাবমিট হ্যান্ডলার
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUpdating(true);
 
     try {
-      // আপনার এক্সিস্টিং PUT/PATCH API (/api/artworks/:id)
+ 
       const res = await fetch(`${baseUrl}/api/artworks/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -85,7 +85,7 @@ export default function AdminEditArtwork() {
 
       if (res.ok) {
         toast.success("Artwork updated successfully! 🎨");
-        // সফলভাবে আপডেট হওয়ার ২ সেকেন্ড পর মেইন তালিকায় ফেরত যাবে
+        
         setTimeout(() => {
           router.push("/dashboard/admin/manage-artworks");
         }, 2000);
@@ -112,7 +112,7 @@ export default function AdminEditArtwork() {
     <div className="w-full min-h-screen text-slate-200 p-6 space-y-6 max-w-4xl mx-auto">
       <ToastContainer theme="dark" position="top-right" />
 
-      {/* হেডার ও ব্যাক বাটন */}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Modify Artwork Details</h1>
@@ -130,10 +130,9 @@ export default function AdminEditArtwork() {
 
       <div className="w-full border-t border-slate-800/60 my-2"></div>
 
-      {/* এডিট ফর্ম ও প্রিভিউ গ্রিড */}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* বামে ছোট প্রিভিউ উইন্ডো */}
+ 
         <div className="bg-[#0b111e] border border-slate-800/80 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-3 h-fit">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider w-full text-left">Current Image</p>
           <img 
@@ -147,11 +146,10 @@ export default function AdminEditArtwork() {
           </div>
         </div>
 
-        {/* ডানে মূল এডিট ফর্ম */}
+
         <div className="md:col-span-2 bg-[#0b111e] border border-slate-800/80 rounded-xl p-6 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            
-            {/* টাইটেল ইনপুট */}
+     
             <div className="space-y-1.5">
               <label className="text-slate-400 font-medium">Artwork Title</label>
               <input
@@ -166,7 +164,7 @@ export default function AdminEditArtwork() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* প্রাইস ইনপুট */}
+      
               <div className="space-y-1.5">
                 <label className="text-slate-400 font-medium">Price (USD $)</label>
                 <input
@@ -181,7 +179,6 @@ export default function AdminEditArtwork() {
                 />
               </div>
 
-              {/* ক্যাটাগরি ইনপুট */}
               <div className="space-y-1.5">
                 <label className="text-slate-400 font-medium">Category</label>
                 <input
@@ -196,7 +193,7 @@ export default function AdminEditArtwork() {
               </div>
             </div>
 
-            {/* ডেসক্রিপশন ইনপুট */}
+      
             <div className="space-y-1.5">
               <label className="text-slate-400 font-medium">Artwork Description</label>
               <textarea
@@ -210,7 +207,6 @@ export default function AdminEditArtwork() {
               ></textarea>
             </div>
 
-            {/* অ্যাকশন বাটনস */}
             <div className="flex items-center justify-end gap-3 pt-2">
               <Link
                 href="/dashboard/admin/manage-artworks"
