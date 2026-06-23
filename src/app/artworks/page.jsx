@@ -18,7 +18,9 @@ export default function ArtworksPage() {
       try {
         const baseUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${baseUrl}/api/artworks`);
+        const res = await fetch(`${baseUrl}/api/artworks`,
+          
+        );
         const result = await res.json();
 
         if (Array.isArray(result)) {

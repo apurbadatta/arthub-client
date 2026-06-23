@@ -1,39 +1,56 @@
+"use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FaHeart, FaRegHeart, FaEye } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaEye, FaSpinner, FaArrowRight } from "react-icons/fa";
 
 export default function FeaturedArtworks() {
-  const artworks = [
-    {
-      id: 1,
-      title: "Neon Dreams",
-      artist: "Alex River",
-      price: "$850",
-      image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600",
-      tag: "Digital Art",
-    },
-    {
-      id: 2,
-      title: "Silent Whispers",
-      artist: "Sophia Vance",
-      price: "$1,400",
-      image: "https://images.unsplash.com/photo-1579783928621-7a13d66a6211?q=80&w=600",
-      tag: "Oil Painting",
-    },
-    {
-      id: 3,
-      title: "Abstract Nexus",
-      artist: "Marcus Cole",
-      price: "$2,100",
-      image: "https://images.unsplash.com/photo-1549887534-1541e9326642?q=80&w=600",
-      tag: "Sculpture",
-    },
-  ];
+  // ডাটা এবং লোডিং স্টেট
+  const [artworks, setArtworks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const fetchArtworks = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/artworks`);
+        if (!res.ok) throw new Error("Failed to fetch artworks from server");
+        
+        const result = await res.json();
+        
+        // 🔍 ব্রাউজার কনসোলে (F12) চেক করার জন্য লগার
+        console.log("FeaturedArtworks API Response:", result);
+
+        let artsArray = [];
+        
+        // ব্যাকএন্ডের বিভিন্ন সম্ভাব্য ডাটা স্ট্রাকচার চেক করা হচ্ছে
+        if (Array.isArray(result)) {
+          artsArray = result;
+        } else if (result.data && Array.isArray(result.data)) {
+          artsArray = result.data;
+        } else if (result.artworks && Array.isArray(result.artworks)) {
+          artsArray = result.artworks;
+        } else if (result.result && Array.isArray(result.result)) {
+          artsArray = result.result;
+        }
+
+        // সর্বোচ্চ ৬টি ডাটা স্লাইস করে নেওয়া হলো
+        setArtworks(artsArray.slice(0, 6));
+      } catch (error) {
+        console.error("Error fetching featured artworks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArtworks();
+  }, [baseUrl]);
 
   return (
     <section className="py-20 bg-[#0b121f] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
+        {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-4">
           <div>
             <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
@@ -51,53 +68,89 @@ export default function FeaturedArtworks() {
           </Link>
         </div>
 
-        {/* Art Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {artworks.map((art) => (
-            <div 
-              key={art.id} 
-              className="bg-[#111827] rounded-[24px] border border-slate-800 overflow-hidden group hover:border-slate-700 transition-all duration-300"
-            >
-              {/* Image Box */}
-              <div className="aspect-square w-full bg-slate-900 relative overflow-hidden">
-                <img 
-                  src={art.image} 
-                  alt={art.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                
-                {/* Floating Tag */}
-                <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/10 text-slate-200">
-                  {art.tag}
-                </span>
-
-                {/* Hover Quick View Overlay */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 z-10">
-                  <button className="p-3 bg-white hover:bg-purple-600 text-slate-900 hover:text-white rounded-full transition-all shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300">
-                    <FaEye />
-                  </button>
-                  <button className="p-3 bg-white hover:bg-rose-500 text-slate-900 hover:text-white rounded-full transition-all shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300">
-                    <FaRegHeart />
-                  </button>
-                </div>
-              </div>
-
-              {/* Info Box */}
-              <div className="p-6 flex justify-between items-center">
-                <div>
-                  <h3 className="font-black text-white text-lg group-hover:text-purple-400 transition-colors">
-                    {art.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">by {art.artist}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-purple-400 font-black text-xl">{art.price}</span>
-                  <p className="text-[10px] text-emerald-400 font-bold uppercase mt-0.5">Ready to Ship</p>
-                </div>
-              </div>
+        {/* ⏳ ডাটা লোড হওয়ার সময়ের UI */}
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="flex flex-col items-center gap-3">
+              <FaSpinner className="animate-spin text-4xl text-purple-500" />
+              <p className="text-xs text-slate-400">Loading Artworks...</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : artworks.length === 0 ? (
+          // 🚫 ডাটা না থাকলে
+          <div className="text-center text-slate-500 py-16 border border-dashed border-slate-800 rounded-2xl">
+            <p className="text-sm">No artworks found in the database.</p>
+            <p className="text-xs text-slate-600 mt-1">Please make sure you have uploaded artworks using the Artist Dashboard.</p>
+          </div>
+        ) : (
+          /* 🎨 আর্ট গ্রিড */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {artworks.map((art) => {
+              const artId = art._id || art.id; // ডাইনামিক আইডি নির্ধারণ
+
+              return (
+                <div 
+                  key={artId} 
+                  className="bg-[#111827] rounded-[24px] border border-slate-800 overflow-hidden group hover:border-slate-700 transition-all duration-300 flex flex-col justify-between"
+                >
+                  {/* Image Container */}
+                  <div className="aspect-square w-full bg-slate-900 relative overflow-hidden">
+                    <img 
+                      src={art.image} 
+                      alt={art.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    
+                    {/* Category Tag */}
+                    <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/10 text-slate-200">
+                      {art.category || art.tag || "Artwork"}
+                    </span>
+
+                    {/* Hover Actions Menu (ছবিতে ক্লিক করলেও ডিটেইলসে যাবে) */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 z-10">
+                      <Link 
+                        href={`/artworks/${artId}`}
+                        className="p-3 bg-white hover:bg-purple-600 text-slate-900 hover:text-white rounded-full transition-all shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300 cursor-pointer"
+                      >
+                        <FaEye />
+                      </Link>
+                      <button className="p-3 bg-white hover:bg-rose-500 text-slate-900 hover:text-white rounded-full transition-all shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300 cursor-pointer">
+                        <FaRegHeart />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Info Card */}
+                  <div className="p-6 flex justify-between items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-black text-white text-lg group-hover:text-purple-400 transition-colors truncate">
+                        {art.title}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5 truncate">
+                        by {art.artistName || art.artist || "Unknown Artist"}
+                      </p>
+                      <div className="mt-1.5">
+                        <span className="text-purple-400 font-black text-xl">
+                          ${art.price}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 💡 "Ready to Ship" সরিয়ে এখানে ক্লিকবল "Details" বাটন বসানো হয়েছে */}
+                    <div className="flex-shrink-0">
+                      <Link
+                        href={`/artworks/${artId}`}
+                        className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer shadow-md shadow-purple-900/20"
+                      >
+                        Details <FaArrowRight className="text-[10px]" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
       </div>
     </section>

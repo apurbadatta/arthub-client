@@ -35,25 +35,35 @@ export default function ArtworkDetailsPage() {
   }, [session, id]);
 
   useEffect(() => {
-    const fetchArtworkDetails = async () => {
-      try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        // নির্দিষ্ট আইডির ডেটা ব্যাকএন্ড থেকে নিয়ে আসার জন্য (এক্সপ্রেসের এই GET এন্ডপয়েন্ট থাকতে হবে)
-        const res = await fetch(`${baseUrl}/api/artworks/${id}`);
-        const result = await res.json();
+   const fetchArtworkDetails = async () => {
+  try {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-        if (result.success || result._id || result.data) {
-          setArtwork(result.data || result);
-        } else {
-          toast.error("Artwork not found!");
-        }
-      } catch (error) {
-        console.error("Error fetching artwork details:", error);
-        toast.error("Failed to load details!");
-      } finally {
-        setLoading(false);
-      }
-    };
+    const { data: tokenData } = await authClient.token();
+
+    const res = await fetch(`${baseUrl}/api/artworks/${id}`, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${tokenData?.token}`,
+      },
+    });
+
+    const result = await res.json();
+
+    if (result.success || result._id || result.data) {
+      setArtwork(result.data || result);
+    } else {
+      toast.error("Artwork not found!");
+    }
+  } catch (error) {
+    
+    toast.error("Failed to load details!");
+  } finally {
+    setLoading(false);
+  }
+};
 
     if (id) fetchArtworkDetails();
   }, [id]);
