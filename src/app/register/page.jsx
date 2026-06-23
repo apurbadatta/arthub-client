@@ -1,4 +1,3 @@
-
 "use client";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -14,7 +13,7 @@ import {
 
 import { useRouter } from "next/navigation";
 import { FaGoogle, FaUserPlus, FaUser, FaPalette } from "react-icons/fa"; 
-import { HiEye, HiEyeOff, } from "react-icons/hi"; 
+import { HiEye, HiEyeOff } from "react-icons/hi"; 
 import { toast } from "react-hot-toast"; 
 import Link from 'next/link'; 
 import { useState } from "react";
@@ -56,29 +55,31 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="container mx-auto px-6 py-12 min-h-[90vh] flex items-center justify-center bg-white">
-      <Card className="max-w-[550px] w-full p-8 shadow-xl rounded-3xl border border-slate-100 bg-white">
+   
+    <div className="container mx-auto px-6 py-12 min-h-[90vh] flex items-center justify-center bg-[#0b121f] text-white">
+   
+      <Card className="max-w-[550px] w-full p-8 shadow-2xl rounded-[32px] border border-slate-800/80 bg-[#111827]/80 backdrop-blur-md">
         
-        {/* HEADING WITH CUSTOM ARTHUB COLOR */}
+    
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-slate-950 mb-2">
-            Join <span className="text-[#7c3aed]">Art</span><span className="text-[#111827]">Hub</span>
+          <h1 className="text-3xl font-black text-white mb-2 tracking-wide">
+            Join <span className="text-[#7c3aed]">Art</span><span className="text-slate-300">Hub</span>
           </h1>
-          <p className="text-slate-500 text-sm">Join ArtHub to purchase or publish artwork.</p>
+          <p className="text-slate-400 text-sm">Join ArtHub to purchase or publish artwork.</p>
         </div>
 
         <Form className="flex flex-col gap-5 w-full" onSubmit={onSubmit}>
           
           {/* FULL NAME */}
           <TextField isRequired name="name" type="text" className="w-full">
-            <Label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Full Name</Label>
+            <Label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Full Name</Label>
             <InputGroup>
               <InputGroup.Input 
                 placeholder="e.g. John Doe" 
-                className="w-full text-slate-800"
+                className="w-full bg-[#0b121f] border border-slate-800 focus:border-indigo-500 text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-500 focus:outline-none transition-all"
               />
             </InputGroup>
-            <FieldError className="text-xs text-red-500 mt-1" />
+            <FieldError className="text-xs text-rose-400 mt-1" />
           </TextField>
 
           {/* EMAIL ADDRESS */}
@@ -94,57 +95,57 @@ export default function SignUpPage() {
               return null;
             }}
           >
-            <Label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Email Address</Label>
+            <Label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email Address</Label>
             <InputGroup>
               <InputGroup.Input 
                 placeholder="email@example.com" 
-                className="w-full text-slate-800"
+                className="w-full bg-[#0b121f] border border-slate-800 focus:border-indigo-500 text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-500 focus:outline-none transition-all"
               />
             </InputGroup>
-            <FieldError className="text-xs text-red-500 mt-1" />
+            <FieldError className="text-xs text-rose-400 mt-1" />
           </TextField>
 
-          {/* ROLE SELECTION */}
+ 
           <div className="w-full">
-            <Label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Select Role</Label>
+            <Label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Select Role</Label>
             <div className="grid grid-cols-2 gap-4">
               
-              {/* User Buyer Option */}
+          
               <div 
                 onClick={() => setSelectedRole("user")}
-                className={`cursor-pointer p-4 rounded-xl border-2 text-center transition ${
+                className={`cursor-pointer p-4 rounded-xl border-2 text-center transition-all duration-200 ${
                   selectedRole === "user" 
-                    ? "border-blue-600 bg-blue-50/50" 
-                    : "border-slate-200 bg-white hover:border-slate-300"
+                    ? "border-[#7c3aed] bg-[#7c3aed]/10" 
+                    : "border-slate-800 bg-[#0b121f] hover:border-slate-700"
                 }`}
               >
                 <div className="flex justify-center mb-1">
-                  <FaUser className={`text-lg ${selectedRole === "user" ? "text-blue-600" : "text-slate-400"}`} />
+                  <FaUser className={`text-lg ${selectedRole === "user" ? "text-[#7c3aed]" : "text-slate-500"}`} />
                 </div>
-                <div className="font-bold text-sm text-slate-950">User (Buyer)</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Browse & Buy Art</div>
+                <div className="font-bold text-sm text-white">User (Buyer)</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Browse & Buy Art</div>
               </div>
 
-              {/* Artist Option */}
+        
               <div 
                 onClick={() => setSelectedRole("artist")}
-                className={`cursor-pointer p-4 rounded-xl border-2 text-center transition ${
+                className={`cursor-pointer p-4 rounded-xl border-2 text-center transition-all duration-200 ${
                   selectedRole === "artist" 
-                    ? "border-blue-600 bg-blue-50/50" 
-                    : "border-slate-200 bg-white hover:border-slate-300"
+                    ? "border-[#7c3aed] bg-[#7c3aed]/10" 
+                    : "border-slate-800 bg-[#0b121f] hover:border-slate-700"
                 }`}
               >
                 <div className="flex justify-center mb-1">
-                  <FaPalette className={`text-lg ${selectedRole === "artist" ? "text-blue-600" : "text-slate-400"}`} />
+                  <FaPalette className={`text-lg ${selectedRole === "artist" ? "text-[#7c3aed]" : "text-slate-500"}`} />
                 </div>
-                <div className="font-bold text-sm text-slate-950">Artist</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Upload & Sell Art</div>
+                <div className="font-bold text-sm text-white">Artist</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Upload & Sell Art</div>
               </div>
 
             </div>
           </div>
 
-          {/* PASSWORD FIELD WITH NEW TOGGLE STRATEGY */}
+     
           <TextField
             isRequired
             minLength={8}
@@ -157,67 +158,67 @@ export default function SignUpPage() {
               return null;
             }}
           >
-            <Label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Password</Label>
-            <InputGroup>
+            <Label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Password</Label>
+            <InputGroup className="relative flex items-center">
               <InputGroup.Input 
                 placeholder="********" 
-                className="w-full text-slate-800"
+                className="w-full bg-[#0b121f] border border-slate-800 focus:border-indigo-500 text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-500 focus:outline-none transition-all"
                 type={isVisible ? "text" : "password"}
               />
-              <InputGroup.Suffix className="pr-3 flex items-center justify-center">
+              <InputGroup.Suffix className="absolute right-3 flex items-center justify-center z-10">
                 <Button
                   isIconOnly
                   aria-label={isVisible ? "Hide password" : "Show password"}
                   size="sm"
                   variant="light"
-                  className="text-slate-400 hover:text-slate-600 focus:outline-none text-xl"
+                  className="text-slate-500 hover:text-slate-300 focus:outline-none text-xl transition-colors"
                   onPress={() => setIsVisible(!isVisible)}
                 >
                   {isVisible ? <HiEyeOff /> : <HiEye />}
                 </Button>
               </InputGroup.Suffix>
             </InputGroup>
-            <Description className="text-[11px] text-slate-400 mt-1 block">
+            <Description className="text-[10px] text-slate-500 mt-1.5 block leading-relaxed">
               Must be at least 8 characters with 1 uppercase and 1 number
             </Description>
-            <FieldError className="text-xs text-red-500 mt-1" />
+            <FieldError className="text-xs text-rose-400 mt-1" />
           </TextField>
 
-          {/* REGISTER BUTTON */}
+  
           <div className="flex flex-col gap-3 mt-2">
             <Button 
               type="submit"
-              className="w-full font-bold py-6 bg-slate-950 hover:bg-slate-900 text-white rounded-xl text-base shadow-md transition flex items-center justify-center gap-2"
+              className="w-full font-bold py-4 bg-[#5c3ef2] hover:bg-[#4c30d3] text-white rounded-xl text-sm shadow-lg shadow-purple-900/20 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
-              <FaUserPlus className="text-sm" /> 
+              <FaUserPlus className="text-xs" /> 
               REGISTER
             </Button>
           </div>
         </Form>
 
-        {/* OR DIVIDER */}
+ 
         <div className="flex items-center my-6 gap-4">
-          <div className="h-[1px] flex-1 bg-slate-200"></div>
-          <span className="text-slate-400 text-xs font-bold tracking-wider">OR</span>
-          <div className="h-[1px] flex-1 bg-slate-200"></div>
+          <div className="h-[1px] flex-1 bg-slate-800"></div>
+          <span className="text-slate-500 text-xs font-bold tracking-wider uppercase">OR</span>
+          <div className="h-[1px] flex-1 bg-slate-800"></div>
         </div>
 
-        {/* GOOGLE SIGN IN */}
+    
         <div className="flex flex-col gap-3">
           <Button
             onClick={handleGoogleSignIn}
             variant="bordered"
-            className="w-full font-semibold py-6 border border-slate-200 text-slate-900 rounded-xl text-sm hover:bg-slate-50 transition flex items-center justify-center gap-3 shadow-sm"
+            className="w-full font-bold py-4 border border-slate-800 text-slate-200 rounded-xl text-sm bg-[#0b121f] hover:bg-[#111827] transition flex items-center justify-center gap-3 shadow-sm cursor-pointer"
           >
-            <FaGoogle className="text-red-500 text-base" />
+            <FaGoogle className="text-rose-500 text-base" />
             Register with Google
           </Button>
         </div>
 
-        {/* SWITCH TO SIGN IN */}
-        <p className="text-center text-sm text-slate-600 mt-6">
+        
+        <p className="text-center text-xs text-slate-400 mt-6 font-medium">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 font-bold hover:underline">
+          <Link href="/login" className="text-purple-400 font-bold hover:text-purple-300 hover:underline ml-1 transition-colors">
             Sign In Instead
           </Link>
         </p>

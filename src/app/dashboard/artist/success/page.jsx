@@ -20,14 +20,14 @@ export default async function Success({ searchParams }) {
   const amountTotal = session.amount_total ? (session.amount_total / 100).toFixed(2) : "49.00";
   const transactionId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
 
-  // পেমেন্ট ইনকমপ্লিট থাকলে আর্টিস্ট ড্যাশবোর্ডে রিডাইরেক্ট করবে
+ 
   if (status === 'open') {
     return redirect('/dashboard/artist/manage-artworks');
   }
 
   if (status === 'complete' && customerEmail) {
     try {
-      // সার্ভার সাইড থেকে নোড সার্ভারের এপিআই কল করে প্রোফাইল আপডেট ও ট্রানজেকশন সেভ করা হচ্ছে
+    
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${backendUrl}/api/profile/upgrade-premium`, {
         method: "PUT",

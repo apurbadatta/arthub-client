@@ -4,7 +4,7 @@ import { FaPlus, FaSpinner, FaTrash, FaEdit, FaExclamationTriangle, FaCrown } fr
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ArtworkForm from "./ArtworkForm"; 
-
+import { authClient } from "@/lib/auth-client";
 export default function ManageArtworks({ user, refetch }) {
   const [view, setView] = useState("list"); // 'list', 'add', or 'edit'
   const [artworks, setArtworks] = useState([]);
@@ -89,29 +89,43 @@ export default function ManageArtworks({ user, refetch }) {
   };
   
   const handleDeleteConfirm = async () => {
-    if (!targetDeleteId) return;
-    setDeleteLoading(true);
-    try {
-      const res = await fetch(`${baseUrl}/api/artworks/${targetDeleteId}`, {
-        method: "DELETE",
-      });
-      const result = await res.json();
+  if (!targetDeleteId) return;
 
-      if (result.deletedCount > 0 || result.acknowledged) {
-        toast.success("Artwork deleted successfully! 🗑️");
-        setArtworks((prev) => prev.filter((art) => art._id !== targetDeleteId));
-      } else {
-        toast.error("Failed to delete artwork");
+  setDeleteLoading(true);
+
+  try {
+    const { data: tokenData } = await authClient.token();
+
+    const res = await fetch(
+      `${baseUrl}/api/artworks/${targetDeleteId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${tokenData?.token}`,
+        },
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong!");
-    } finally {
-      setDeleteLoading(false);
-      setIsDeleteModalOpen(false);
-      setTargetDeleteId(null);
+    );
+
+    const result = await res.json();
+
+    if (result.deletedCount > 0 || result.acknowledged) {
+      toast.success("Artwork deleted successfully! 🗑️");
+      setArtworks((prev) =>
+        prev.filter((art) => art._id !== targetDeleteId)
+      );
+    } else {
+      toast.error("Failed to delete artwork");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    toast.error("Something went wrong!");
+  } finally {
+    setDeleteLoading(false);
+    setIsDeleteModalOpen(false);
+    setTargetDeleteId(null);
+  }
+};
 
   const handleEditClick = (artwork) => {
     setSelectedArtwork(artwork);

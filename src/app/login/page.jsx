@@ -12,7 +12,7 @@ import {
 } from "@heroui/react";
 import Link from "next/link"; 
 import { FaGoogle, FaCheck } from "react-icons/fa"; 
-import { HiEye, HiEyeOff, HiLockClosed, HiMail } from "react-icons/hi"; 
+import { HiEye, HiEyeOff } from "react-icons/hi"; 
 import { toast } from "react-hot-toast"; 
 import { useState } from "react";
 
@@ -49,42 +49,44 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="container mx-auto px-6 py-20 min-h-[90vh]">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <div className="container mx-auto px-6 py-20 min-h-[90vh] bg-[#0b121f] text-white flex items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full">
         
-        {/* LEFT TEXT CONTENT - BRANDING FROM image_9d41b1.png */}
+        {/* LEFT TEXT CONTENT - BRANDING */}
         <div className="lg:max-w-lg space-y-6">
-          <span className="text-xs font-bold text-[#7c3aed] uppercase tracking-widest">
+          <span className="text-xs font-bold text-[#7c3aed] uppercase tracking-widest bg-purple-950/40 px-3 py-1.5 rounded-xl border border-purple-500/20">
             SECURE ACCESS
           </span>
-          <h1 className="text-5xl md:text-6xl font-black text-slate-950 leading-tight tracking-tight">
-            Welcome back to <span className="text-[#7c3aed]">Art</span><span className="text-[#111827]">Hub</span>
+          <h1 className="text-5xl md:text-6xl font-black text-white leading-tight tracking-tight">
+            Welcome back to <span className="text-[#7c3aed]">Art</span><span className="text-slate-300">Hub</span>
           </h1>
-          <p className="text-slate-600 text-lg leading-relaxed">
+          <p className="text-slate-400 text-lg leading-relaxed">
             Manage your listings, explore creative artworks, and keep your gallery dashboard organized in one private space.
           </p>
         </div>
 
         {/* RIGHT CARD CONTENT */}
         <div className="flex justify-center lg:justify-end">
-          <Card className="max-w-[480px] w-full p-8 shadow-2xl rounded-3xl border border-slate-100 bg-white">
-            <h1 className="text-3xl font-black text-slate-950 mb-6">Sign In</h1>
+      
+          <Card className="max-w-[480px] w-full p-8 shadow-2xl rounded-[32px] border border-slate-800/80 bg-[#111827]/80 backdrop-blur-md">
+            <h1 className="text-3xl font-black text-white mb-6 tracking-wide">Sign In</h1>
 
             <Form className="flex w-full flex-col gap-5" onSubmit={onSubmit}>
               
               {/* EMAIL FIELD */}
               <TextField isRequired name="email" type="email" className="w-full">
-                <Label className="block text-sm font-bold text-slate-700 mb-2">Email</Label>
+                <Label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email</Label>
                 <InputGroup>
                   <InputGroup.Input 
                     placeholder="john@example.com" 
-                    className="w-full text-slate-800"
+                  
+                    className="w-full bg-[#0b121f] border border-slate-800 focus:border-indigo-500 text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-500 focus:outline-none transition-all"
                   />
                 </InputGroup>
-                <FieldError className="text-xs text-red-500 mt-1" />
+                <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
 
-              {/* PASSWORD FIELD WITH NEW TOGGLE STRATEGY */}
+      
               <TextField
                 isRequired
                 minLength={8}
@@ -97,30 +99,31 @@ export default function SignInPage() {
                   return null;
                 }}
               >
-                <Label className="block text-sm font-bold text-slate-700 mb-2">Password</Label>
-                <InputGroup>
+                <Label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Password</Label>
+                <InputGroup className="relative flex items-center">
                   <InputGroup.Input 
                     placeholder="Enter your password" 
-                    className="w-full text-slate-800"
+              
+                    className="w-full bg-[#0b121f] border border-slate-800 focus:border-indigo-500 text-white rounded-xl px-4 py-3 text-sm placeholder:text-slate-500 focus:outline-none transition-all"
                     type={isVisible ? "text" : "password"}
                   />
-                  <InputGroup.Suffix className="pr-3 flex items-center justify-center">
+                  <InputGroup.Suffix className="absolute right-3 flex items-center justify-center z-10">
                     <Button
                       isIconOnly
                       aria-label={isVisible ? "Hide password" : "Show password"}
                       size="sm"
                       variant="light"
-                      className="text-slate-400 hover:text-slate-600 focus:outline-none text-xl"
+                      className="text-slate-500 hover:text-slate-300 focus:outline-none text-xl transition-colors"
                       onPress={() => setIsVisible(!isVisible)}
                     >
                       {isVisible ? <HiEyeOff /> : <HiEye />}
                     </Button>
                   </InputGroup.Suffix>
                 </InputGroup>
-                <Description className="text-[11px] text-slate-400 mt-1 block">
+                <Description className="text-[10px] text-slate-500 mt-1.5 block leading-relaxed">
                   Must be at least 8 characters with 1 uppercase and 1 number
                 </Description>
-                <FieldError className="text-xs text-red-500 mt-1" />
+                <FieldError className="text-xs text-rose-400 mt-1" />
               </TextField>
 
               {/* SUBMIT BUTTON */}
@@ -128,9 +131,11 @@ export default function SignInPage() {
                 <Button
                   type="submit"
                   isLoading={loading}
-                  className="w-full font-bold py-7 bg-slate-950 hover:bg-slate-900 text-white rounded-2xl text-base shadow-md transition flex items-center justify-center gap-2"
+        
+                  className="w-full font-bold py-4 bg-[#5c3ef2] hover:bg-[#4c30d3] disabled:bg-purple-900/50 text-white rounded-xl text-sm shadow-lg shadow-purple-900/20 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                 >
-                  {!loading && <FaCheck className="text-sm" />} 
+              
+                  {!loading && <FaCheck className="text-xs" />} 
                   {loading ? "Checking..." : "Submit"}
                 </Button>
               </div>
@@ -138,25 +143,26 @@ export default function SignInPage() {
 
             {/* OR DIVIDER */}
             <div className="flex items-center my-6 gap-4">
-              <div className="h-[1px] flex-1 bg-slate-200"></div>
-              <span className="text-slate-400 text-sm font-medium">OR</span>
-              <div className="h-[1px] flex-1 bg-slate-200"></div>
+              <div className="h-[1px] flex-1 bg-slate-800"></div>
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">OR</span>
+              <div className="h-[1px] flex-1 bg-slate-800"></div>
             </div>
 
             {/* GOOGLE SIGN IN */}
             <Button
               onClick={handleGoogleSignIn}
               variant="bordered"
-              className="w-full font-bold py-7 border border-slate-200 text-slate-900 rounded-2xl text-base hover:bg-slate-50 transition flex items-center justify-center gap-3 shadow-sm"
+      
+              className="w-full font-bold py-4 border border-slate-800 text-slate-200 rounded-xl text-sm bg-[#0b121f] hover:bg-[#111827] transition flex items-center justify-center gap-3 shadow-sm cursor-pointer"
             >
-              <FaGoogle className="text-red-500 text-lg" />
+              <FaGoogle className="text-rose-500 text-base" />
               Continue with Google
             </Button>
 
-            {/* REGISTER NAVIGATION */}
-            <p className="text-center text-sm text-slate-600 mt-8">
+       
+            <p className="text-center text-xs text-slate-400 mt-8 font-medium">
               Do not have an account?{" "}
-              <Link href="/register" className="text-blue-600 font-bold hover:underline">
+              <Link href="/register" className="text-purple-400 font-bold hover:text-purple-300 hover:underline ml-1 transition-colors">
                 Register
               </Link>
             </p>

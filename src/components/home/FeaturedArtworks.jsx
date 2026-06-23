@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FaHeart, FaRegHeart, FaEye, FaSpinner, FaArrowRight } from "react-icons/fa";
 
 export default function FeaturedArtworks() {
-  // ডাটা এবং লোডিং স্টেট
+  
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,12 +18,12 @@ export default function FeaturedArtworks() {
         
         const result = await res.json();
         
-        // 🔍 ব্রাউজার কনসোলে (F12) চেক করার জন্য লগার
+      
         console.log("FeaturedArtworks API Response:", result);
 
         let artsArray = [];
         
-        // ব্যাকএন্ডের বিভিন্ন সম্ভাব্য ডাটা স্ট্রাকচার চেক করা হচ্ছে
+     
         if (Array.isArray(result)) {
           artsArray = result;
         } else if (result.data && Array.isArray(result.data)) {
@@ -34,7 +34,6 @@ export default function FeaturedArtworks() {
           artsArray = result.result;
         }
 
-        // সর্বোচ্চ ৬টি ডাটা স্লাইস করে নেওয়া হলো
         setArtworks(artsArray.slice(0, 6));
       } catch (error) {
         console.error("Error fetching featured artworks:", error);
@@ -68,7 +67,7 @@ export default function FeaturedArtworks() {
           </Link>
         </div>
 
-        {/* ⏳ ডাটা লোড হওয়ার সময়ের UI */}
+     
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <div className="flex flex-col items-center gap-3">
@@ -77,23 +76,23 @@ export default function FeaturedArtworks() {
             </div>
           </div>
         ) : artworks.length === 0 ? (
-          // 🚫 ডাটা না থাকলে
+      
           <div className="text-center text-slate-500 py-16 border border-dashed border-slate-800 rounded-2xl">
             <p className="text-sm">No artworks found in the database.</p>
             <p className="text-xs text-slate-600 mt-1">Please make sure you have uploaded artworks using the Artist Dashboard.</p>
           </div>
         ) : (
-          /* 🎨 আর্ট গ্রিড */
+        
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {artworks.map((art) => {
-              const artId = art._id || art.id; // ডাইনামিক আইডি নির্ধারণ
+              const artId = art._id || art.id; 
 
               return (
                 <div 
                   key={artId} 
                   className="bg-[#111827] rounded-[24px] border border-slate-800 overflow-hidden group hover:border-slate-700 transition-all duration-300 flex flex-col justify-between"
                 >
-                  {/* Image Container */}
+           
                   <div className="aspect-square w-full bg-slate-900 relative overflow-hidden">
                     <img 
                       src={art.image} 
@@ -101,12 +100,10 @@ export default function FeaturedArtworks() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     
-                    {/* Category Tag */}
+             
                     <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/10 text-slate-200">
                       {art.category || art.tag || "Artwork"}
                     </span>
-
-                    {/* Hover Actions Menu (ছবিতে ক্লিক করলেও ডিটেইলসে যাবে) */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 z-10">
                       <Link 
                         href={`/artworks/${artId}`}
@@ -135,8 +132,6 @@ export default function FeaturedArtworks() {
                         </span>
                       </div>
                     </div>
-
-                    {/* 💡 "Ready to Ship" সরিয়ে এখানে ক্লিকবল "Details" বাটন বসানো হয়েছে */}
                     <div className="flex-shrink-0">
                       <Link
                         href={`/artworks/${artId}`}

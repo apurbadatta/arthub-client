@@ -21,14 +21,14 @@ export default async function UserSuccess({ searchParams }) {
   const transactionId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
   const tier = session.metadata?.tier || "pro";
 
-  // পেমেন্ট ইনকমপ্লিট থাকলে ইউজার ড্যাশবোর্ডে রিডাইরেক্ট করবে
+
   if (status === 'open') {
     return redirect('/dashboard/user/subscription');
   }
 
   if (status === 'complete' && customerEmail) {
     try {
-      // নোড সার্ভারের এপিআই কল করে প্রোফাইল আপডেট ও ট্রানজেকশন সেভ করা হচ্ছে
+     
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${backendUrl}/api/profile/upgrade-user-tier`, {
         method: "PUT",

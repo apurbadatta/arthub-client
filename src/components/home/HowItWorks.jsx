@@ -1,5 +1,3 @@
-"use client";
-
 import { FaSearch, FaWallet, FaShoppingBag } from "react-icons/fa";
 
 export default function HowItWorks() {
@@ -22,7 +20,8 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-20 bg-[#0e1726] text-white border-t border-slate-900">
+   
+    <section className="py-20 bg-[#0b121f] text-white border-t border-slate-900/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
@@ -36,23 +35,21 @@ export default function HowItWorks() {
           </p>
         </div>
 
-        {/* Steps Container */}
+  
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
           {steps.map((step, idx) => (
             <div key={idx} className="text-center relative group">
-              {/* Process Connector Lines (Desktop Only) */}
+        
               {idx < 2 && (
-                <div className="hidden md:block absolute top-10 left-[60%] w-full h-[2px] bg-gradient-to-r from-purple-500/30 to-transparent z-0" />
+                <div className="hidden md:block absolute top-10 left-[60%] w-full h-[2px] bg-gradient-to-r from-purple-500/20 to-transparent z-0" />
               )}
-              
-              {/* Step Icon */}
-              <div className="w-20 h-20 bg-[#111827] text-purple-400 border border-slate-800 rounded-[24px] flex items-center justify-center text-2xl mx-auto mb-6 shadow-xl relative z-10 group-hover:text-white group-hover:bg-[#7c3aed] group-hover:border-purple-500 transition-all duration-300">
+              <div className="w-20 h-20 bg-[#111827] text-purple-400 border border-slate-800/80 rounded-[24px] flex items-center justify-center text-2xl mx-auto mb-6 shadow-xl relative z-10 group-hover:text-white group-hover:bg-[#7c3aed] group-hover:border-purple-500 transition-all duration-300">
                 {step.icon}
               </div>
 
-              {/* Step Info */}
-              <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto font-medium">
+    
+              <h3 className="text-xl font-bold text-white mb-2 tracking-wide">{step.title}</h3>
+              <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto font-medium opacity-90">
                 {step.desc}
               </p>
             </div>
