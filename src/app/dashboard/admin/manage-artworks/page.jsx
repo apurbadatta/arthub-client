@@ -4,6 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ArtworkRow from "./_components/ArtworkRow";
 import DeleteModal from "./_components/DeleteModal";
+import { authClient } from "@/lib/auth-client";
 
 export default function ManageArtworks() {
   const [artworks, setArtworks] = useState([]);
@@ -57,23 +58,38 @@ export default function ManageArtworks() {
   };
 
 
-  const handleConfirmDelete = async () => {
-    if (!selectedArt) return;
-    setIsDeleting(true);
-    try {
-      const res = await fetch(`${baseUrl}/api/artworks/${selectedArt._id}`, { method: "DELETE" });
-      if (res.ok) {
-        toast.success("Artwork deleted successfully!");
-        setArtworks((prev) => prev.filter((art) => art._id !== selectedArt._id));
-        setIsModalOpen(false);
+ const handleConfirmDelete = async () => {
+  if (!selectedArt) return;
+
+  setIsDeleting(true);
+
+  try {
+    const { data: tokenData } = await authClient.token();
+
+    const res = await fetch(
+      `${baseUrl}/api/artworks/${selectedArt._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          authorization: `Bearer ${tokenData?.token}`,
+        },
       }
-    } catch (error) {
-      toast.error("Deletion failed");
-    } finally {
-      setIsDeleting(false);
-      setSelectedArt(null);
+    );
+
+    if (res.ok) {
+      toast.success("Artwork deleted successfully!");
+      setArtworks((prev) =>
+        prev.filter((art) => art._id !== selectedArt._id)
+      );
+      setIsModalOpen(false);
     }
-  };
+  } catch (error) {
+    toast.error("Deletion failed");
+  } finally {
+    setIsDeleting(false);
+    setSelectedArt(null);
+  }
+};
 
   return (
     <div className="w-full min-h-screen text-slate-200 p-6 space-y-6">

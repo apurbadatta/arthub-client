@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 export default function AdminEditArtwork() {
   const { id } = useParams();
@@ -30,7 +31,14 @@ export default function AdminEditArtwork() {
     const fetchArtworkDetails = async () => {
       try {
 
-        const res = await fetch(`${baseUrl}/api/artworks/${id}`);
+        const { data: tokenData } = await authClient.token();
+
+      const res = await fetch(`${baseUrl}/api/artworks/${id}`, {
+                headers: {
+                  authorization: `Bearer ${tokenData?.token}`,
+                  },
+                   });
+
         if (!res.ok) throw new Error("Failed to fetch artwork");
         
         const data = await res.json();
@@ -72,16 +80,22 @@ export default function AdminEditArtwork() {
 
     try {
  
-      const res = await fetch(`${baseUrl}/api/artworks/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title,
-          price: Number(formData.price),
-          category: formData.category,
-          description: formData.description
-        }),
-      });
+      const { data: tokenData } = await authClient.token();
+
+const res = await fetch(`${baseUrl}/api/artworks/${id}`, {
+method: "PUT",
+headers: {
+"Content-Type": "application/json",
+authorization: `Bearer ${tokenData?.token}`,
+},
+body: JSON.stringify({
+title: formData.title,
+price: Number(formData.price),
+category: formData.category,
+description: formData.description,
+}),
+});
+
 
       if (res.ok) {
         toast.success("Artwork updated successfully! 🎨");
