@@ -1,3 +1,4 @@
+
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { FaCheckCircle, FaEnvelope, FaArrowRight } from 'react-icons/fa';
@@ -10,7 +11,6 @@ export default async function Success({ searchParams }) {
     throw new Error('Please provide a valid session_id (`cs_test_...`)');
   }
 
-  // স্ট্রাইপ সেশন থেকে পেমেন্ট ডিটেইলস রিট্রিভ করা হচ্ছে
   const session = await stripe.checkout.sessions.retrieve(session_id, {
     expand: ['line_items', 'payment_intent'],
   });
@@ -18,26 +18,41 @@ export default async function Success({ searchParams }) {
   const status = session.status;
   const customerEmail = session.customer_details?.email;
   const amountTotal = session.amount_total ? (session.amount_total / 100).toFixed(2) : "49.00";
-  const transactionId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
+  const transactionId = 
+  (typeof session.payment_intent === 'string' 
+    ? session.payment_intent 
+    : session.payment_intent?.id) 
+  || session_id;
 
- 
   if (status === 'open') {
     return redirect('/dashboard/artist/manage-artworks');
   }
 
   if (status === 'complete' && customerEmail) {
     try {
-    
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${backendUrl}/api/profile/upgrade-premium`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email: customerEmail,
-          amount: amountTotal,
-          paymentIntentId: transactionId
-        }),
-      });
+
+      // আগে check করো এই transaction আগে process হয়েছে কিনা
+      const checkRes = await fetch(
+        `${backendUrl}/api/payments/history?email=${customerEmail}`
+      );
+      const checkData = await checkRes.json();
+
+      const alreadyProcessed = checkData?.data?.some(
+        (tx) => tx.transactionId === transactionId
+      );
+
+      if (!alreadyProcessed) {
+        await fetch(`${backendUrl}/api/profile/upgrade-premium`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            email: customerEmail,
+            amount: amountTotal,
+            paymentIntentId: transactionId
+          }),
+        });
+      }
     } catch (error) {
       console.error("Failed to automatically trigger profile premium upgrade:", error);
     }
