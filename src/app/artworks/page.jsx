@@ -1,16 +1,22 @@
 "use client";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import { FaSearch, FaSpinner } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+// 💡 লগইন চেক করার জন্য আপনার ব্যবহৃত auth-client ইমপোর্ট করা হলো
+import { authClient } from "@/lib/auth-client"; 
+import { useRouter } from "next/navigation";
 
 export default function ArtworksPage() {
+  const router = useRouter();
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
+
+  const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     const fetchAllArtworks = async () => {
@@ -18,9 +24,7 @@ export default function ArtworksPage() {
       try {
         const baseUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${baseUrl}/api/artworks`,
-          
-        );
+        const res = await fetch(`${baseUrl}/api/artworks`);
         const result = await res.json();
 
         if (Array.isArray(result)) {
@@ -52,12 +56,21 @@ export default function ArtworksPage() {
     return matchesSearch && matchesCategory;
   });
 
+
+  const handleDetailsNavigation = (e, artworkId) => {
+    if (!session) {
+      e.preventDefault(); 
+      toast.info("Please login first to view artwork details!");
+      router.push("/login");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-200 py-10 px-4 sm:px-6 lg:px-8">
       <ToastContainer theme="dark" position="top-right" autoClose={3000} />
 
       <div className="max-w-7xl mx-auto">
-        {/* হেডার সেকশন */}
+      
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             Browse Artworks
@@ -68,9 +81,8 @@ export default function ArtworksPage() {
           </p>
         </div>
 
-        {/*  */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-[#111827] border border-slate-800 p-4 rounded-2xl mb-8 shadow-xl">
-          {/* সার্চ ইনপুট */}
+    
           <div className="relative w-full sm:max-w-md">
             <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
               <FaSearch size={14} />
@@ -98,7 +110,7 @@ export default function ArtworksPage() {
           </div>
         </div>
 
-        {loading ? (
+        {loading || isPending ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
@@ -161,9 +173,11 @@ export default function ArtworksPage() {
                     <span className="text-base font-black text-indigo-400">
                       ${art.price}
                     </span>
+                    {/* 💡 onClick ইভেন্ট দিয়ে সেশন ভ্যালিডেশন হ্যান্ডলার যুক্ত করা হয়েছে */}
                     <Link
                       href={`/artworks/${art._id}`}
                       className="w-full sm:w-auto"
+                      onClick={(e) => handleDetailsNavigation(e, art._id)}
                     >
                       <button className="w-full bg-[#5c3ef2] hover:bg-[#4c30d3] text-white text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer shadow-md shadow-purple-500/10">
                         Details

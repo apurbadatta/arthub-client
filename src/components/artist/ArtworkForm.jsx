@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { FaCloudUploadAlt, FaSpinner, FaArrowLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
-
+import { authClient } from "@/lib/auth-client";
 export default function ArtworkForm({ user, editData, onSuccess, onCancel }) {
   const isEditMode = !!editData;
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -93,12 +93,16 @@ export default function ArtworkForm({ user, editData, onSuccess, onCancel }) {
    
       const url = isEditMode ? `${baseUrl}/api/artworks/${editData._id}` : `${baseUrl}/api/artworks`;
       const method = isEditMode ? "PUT" : "POST";
+      const { data: tokenData } = await authClient.token();
 
      const res = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(artworkData),
-      });
+  method: method,
+  headers: {
+    "Content-Type": "application/json",
+    authorization: `Bearer ${tokenData?.token}`,
+  },
+  body: JSON.stringify(artworkData),
+});
 
       const result = await res.json();
 

@@ -2,11 +2,19 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaHeart, FaRegHeart, FaEye, FaSpinner, FaArrowRight } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+
+import { authClient } from "@/lib/auth-client";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function FeaturedArtworks() {
-  
+  const router = useRouter();
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
+
+ 
+  const { data: session, isPending } = authClient.useSession();
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -17,13 +25,10 @@ export default function FeaturedArtworks() {
         if (!res.ok) throw new Error("Failed to fetch artworks from server");
         
         const result = await res.json();
-        
-      
         console.log("FeaturedArtworks API Response:", result);
 
         let artsArray = [];
         
-     
         if (Array.isArray(result)) {
           artsArray = result;
         } else if (result.data && Array.isArray(result.data)) {
@@ -45,8 +50,20 @@ export default function FeaturedArtworks() {
     fetchArtworks();
   }, [baseUrl]);
 
+
+  const handleDetailsNavigation = (e) => {
+    if (!session) {
+      e.preventDefault(); 
+      toast.info("Please login first to view artwork details!");
+      router.push("/login");
+    }
+  };
+
   return (
     <section className="py-20 bg-[#0b121f] text-white">
+ 
+      <ToastContainer theme="dark" position="top-right" autoClose={3000} />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
@@ -67,8 +84,7 @@ export default function FeaturedArtworks() {
           </Link>
         </div>
 
-     
-        {loading ? (
+        {loading || isPending ? (
           <div className="flex justify-center items-center py-20">
             <div className="flex flex-col items-center gap-3">
               <FaSpinner className="animate-spin text-4xl text-purple-500" />
@@ -76,13 +92,11 @@ export default function FeaturedArtworks() {
             </div>
           </div>
         ) : artworks.length === 0 ? (
-      
           <div className="text-center text-slate-500 py-16 border border-dashed border-slate-800 rounded-2xl">
             <p className="text-sm">No artworks found in the database.</p>
             <p className="text-xs text-slate-600 mt-1">Please make sure you have uploaded artworks using the Artist Dashboard.</p>
           </div>
         ) : (
-        
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {artworks.map((art) => {
               const artId = art._id || art.id; 
@@ -92,7 +106,6 @@ export default function FeaturedArtworks() {
                   key={artId} 
                   className="bg-[#111827] rounded-[24px] border border-slate-800 overflow-hidden group hover:border-slate-700 transition-all duration-300 flex flex-col justify-between"
                 >
-           
                   <div className="aspect-square w-full bg-slate-900 relative overflow-hidden">
                     <img 
                       src={art.image} 
@@ -100,13 +113,15 @@ export default function FeaturedArtworks() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     
-             
                     <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/10 text-slate-200">
                       {art.category || art.tag || "Artwork"}
                     </span>
+                    
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 z-10">
+                 
                       <Link 
                         href={`/artworks/${artId}`}
+                        onClick={handleDetailsNavigation}
                         className="p-3 bg-white hover:bg-purple-600 text-slate-900 hover:text-white rounded-full transition-all shadow-lg transform translate-y-4 group-hover:translate-y-0 duration-300 cursor-pointer"
                       >
                         <FaEye />
@@ -132,9 +147,11 @@ export default function FeaturedArtworks() {
                         </span>
                       </div>
                     </div>
+                    
                     <div className="flex-shrink-0">
                       <Link
                         href={`/artworks/${artId}`}
+                        onClick={handleDetailsNavigation}
                         className="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer shadow-md shadow-purple-900/20"
                       >
                         Details <FaArrowRight className="text-[10px]" />
@@ -146,7 +163,6 @@ export default function FeaturedArtworks() {
             })}
           </div>
         )}
-
       </div>
     </section>
   );
