@@ -62,6 +62,12 @@ const Navbar = () => {
             >
               Browse Artworks
             </Link>
+            <Link 
+              href="/about" 
+              className={`transition ${isActive("/about") ? "text-[#7c3aed] font-bold" : "text-slate-300 hover:text-[#7c3aed]"}`}
+            >
+              About
+            </Link>
 
             {/* ইউজার লগইন থাকলে ডেস্কটপ মেনুতে ড্যাশবোর্ড শর্টকাট দেখাবে */}
             {!isPending && user && (
@@ -158,6 +164,13 @@ const Navbar = () => {
             className={`block py-2 ${isActive("/artworks") ? "text-[#7c3aed] font-bold" : "hover:text-[#7c3aed]"}`}
           >
             Browse Artworks
+          </Link>
+          <Link
+            href="/about"
+            onClick={() => setIsOpen(false)}
+            className={`block py-2 ${isActive("/about") ? "text-[#7c3aed] font-bold" : "hover:text-[#7c3aed]"}`}
+          >
+            About
           </Link>
 
           {!isPending && user && (

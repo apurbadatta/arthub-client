@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { FaCalendarAlt, FaCheckCircle, FaShoppingCart, FaArrowLeft, FaSpinner, FaComment, FaTrash, FaEdit, FaPaperPlane } from "react-icons/fa";
+import { FaCalendarAlt, FaCheckCircle, FaShoppingCart, FaArrowLeft, FaSpinner, FaComment, FaTrash, FaEdit, FaPaperPlane, FaMagic } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { authClient } from "@/lib/auth-client";
 import DeleteModal from "../DeleteModal";
+import SocialMediaKitModal from "@/components/shared/SocialMediaKitModal";
 
 export default function ArtworkDetailsPage() {
   const { id } = useParams(); 
@@ -22,6 +23,7 @@ export default function ArtworkDetailsPage() {
   const [editText, setEditText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -309,7 +311,7 @@ export default function ArtworkDetailsPage() {
               </div>
             </div>
 
-            <div className="pt-2 max-w-lg">
+            <div className="pt-2 max-w-lg space-y-3">
               <button 
                 onClick={handlePurchase}
                 disabled={buying || isPurchased}
@@ -326,6 +328,14 @@ export default function ArtworkDetailsPage() {
                 ) : (
                   <><FaShoppingCart size={14} /> Buy Now with Stripe</>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsAiModalOpen(true)}
+                className="w-full bg-gradient-to-r from-purple-950/60 to-indigo-950/60 hover:from-purple-900/80 hover:to-indigo-900/80 border border-purple-500/40 text-purple-200 font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              >
+                <FaMagic className="text-purple-400" /> ✨ AI Social Media Kit
               </button>
             </div>
           </div>
@@ -425,6 +435,12 @@ export default function ArtworkDetailsPage() {
         isOpen={isModalOpen} 
         onClose={() => { setIsModalOpen(false); setCommentToDelete(null); }} 
         onConfirm={handleCommentDelete} 
+      />
+
+      <SocialMediaKitModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        artwork={artwork}
       />
     </div>
   );
