@@ -3,7 +3,7 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client"; // Better Auth 
 import { HiMenuAlt3, HiX } from "react-icons/hi";
 import { FaArtstation, FaUserCircle, FaThLarge } from "react-icons/fa"; 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "react-hot-toast";
 
@@ -11,12 +11,17 @@ const Navbar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Better Auth 
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
-  // 
+  // Logout Handler
   const handleLogout = async () => {
     await authClient.signOut({
       fetchOptions: {
@@ -29,7 +34,7 @@ const Navbar = () => {
     });
   };
 
-  // 
+  // Active Link Helper
   const isActive = (path) => pathname === path;
 
   return (
@@ -37,7 +42,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
-          {/* লোগো সেকশন */}
+          {/* Logo Section */}
           <Link
             href="/"
             className="flex items-center gap-2 font-bold text-2xl text-[#7c3aed]"
@@ -48,7 +53,7 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* ডেস্কটপ নেভিগেশন লিংকসমূহ */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-8 font-medium">
             <Link 
               href="/" 
@@ -69,8 +74,8 @@ const Navbar = () => {
               About
             </Link>
 
-            {/* ইউজার লগইন থাকলে ডেস্কটপ মেনুতে ড্যাশবোর্ড শর্টকাট দেখাবে */}
-            {!isPending && user && (
+            {/* Dashboard shortcut for logged-in users */}
+            {mounted && !isPending && user && (
               <Link
                 href="/dashboard"
                 className={`font-semibold transition flex items-center gap-1.5 ${isActive("/dashboard") ? "text-[#7c3aed]" : "text-slate-300 hover:text-[#7c3aed]"}`}
@@ -80,12 +85,12 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* লগইন / প্রোফাইল সেকশন (Desktop) */}
-          <div className="hidden md:flex items-center gap-4">
-            {!isPending && (
+          {/* Login / Profile Section (Desktop) */}
+          <div className="hidden md:flex items-center gap-4 min-h-[40px]">
+            {mounted && !isPending && (
               <>
                 {user ? (
-                  /* ইউজার লগইন থাকলে এই অংশটি রেন্ডার হবে */
+                  /* Logged-in state */
                   <div className="flex items-center gap-3">
                     <Link 
                       href="/dashboard" 
@@ -116,7 +121,7 @@ const Navbar = () => {
                     </button>
                   </div>
                 ) : (
-                  /* ইউজার লগইন না থাকলে (Guest) শুধুমাত্র এই বাটনগুলো দেখাবে */
+                  /* Guest state */
                   <div className="flex items-center gap-3">
                     <Link
                       href="/login"
@@ -136,7 +141,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* মোবাইল হ্যামবার্গার বাটন */}
+          {/* Mobile Hamburger Button */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -148,7 +153,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* মোবাইল ড্রপডাউন মেনু */}
+      {/* Mobile Dropdown Menu */}
       {isOpen && (
         <div className="md:hidden bg-[#0f172a] border-b border-slate-800 px-4 pt-2 pb-4 space-y-3 font-medium text-slate-300 animate-fadeIn">
           <Link
@@ -173,7 +178,7 @@ const Navbar = () => {
             About
           </Link>
 
-          {!isPending && user && (
+          {mounted && !isPending && user && (
             <Link
               href="/dashboard"
               onClick={() => setIsOpen(false)}
@@ -184,7 +189,7 @@ const Navbar = () => {
           )}
 
           <div className="border-t border-slate-800 pt-3">
-            {!isPending && (
+            {mounted && !isPending && (
               <>
                 {user ? (
                   <div className="space-y-3">

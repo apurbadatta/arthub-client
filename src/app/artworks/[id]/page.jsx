@@ -183,6 +183,16 @@ export default function ArtworkDetailsPage() {
       return;
     }
 
+    if (session.user.role === "artist") {
+      toast.error("Artists are not allowed to purchase artworks! Only buyer (user) accounts can buy art.");
+      return;
+    }
+
+    if (session.user.email === artwork?.artistEmail) {
+      toast.error("You cannot buy your own artwork!");
+      return;
+    }
+
     setBuying(true);
     try {
       const res = await fetch(`${baseUrl}/api/purchases`, {
@@ -312,23 +322,34 @@ export default function ArtworkDetailsPage() {
             </div>
 
             <div className="pt-2 max-w-lg space-y-3">
-              <button 
-                onClick={handlePurchase}
-                disabled={buying || isPurchased}
-                className={`w-full font-bold text-xs uppercase tracking-wider py-4 rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  isPurchased 
-                    ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 cursor-not-allowed shadow-emerald-500/5" 
-                    : "bg-[#5c3ef2] hover:bg-[#4c30d3] text-white shadow-purple-500/10"
-                }`}
-              >
-                {buying ? (
-                  <><FaSpinner className="animate-spin" size={14} /> Processing...</>
-                ) : isPurchased ? (
-                  <><FaCheckCircle size={14} /> Owned / Acquired</>
-                ) : (
-                  <><FaShoppingCart size={14} /> Buy Now with Stripe</>
-                )}
-              </button>
+              {session?.user?.role === "artist" ? (
+                <div className="bg-amber-950/30 border border-amber-500/40 rounded-2xl p-4 text-center space-y-1.5 shadow-md">
+                  <span className="text-xs font-bold text-amber-300 flex items-center justify-center gap-1.5 uppercase tracking-wider">
+                    🎨 Artist Account Notice
+                  </span>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Artists cannot purchase artworks. Only Buyer (User) accounts are authorized to buy art.
+                  </p>
+                </div>
+              ) : (
+                <button 
+                  onClick={handlePurchase}
+                  disabled={buying || isPurchased}
+                  className={`w-full font-bold text-xs uppercase tracking-wider py-4 rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    isPurchased 
+                      ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 cursor-not-allowed shadow-emerald-500/5" 
+                      : "bg-[#5c3ef2] hover:bg-[#4c30d3] text-white shadow-purple-500/10"
+                  }`}
+                >
+                  {buying ? (
+                    <><FaSpinner className="animate-spin" size={14} /> Processing...</>
+                  ) : isPurchased ? (
+                    <><FaCheckCircle size={14} /> Owned / Acquired</>
+                  ) : (
+                    <><FaShoppingCart size={14} /> Buy Now with Stripe</>
+                  )}
+                </button>
+              )}
 
               <button
                 type="button"
